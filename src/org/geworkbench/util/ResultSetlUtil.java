@@ -12,7 +12,7 @@ import java.net.URL;
 import java.util.Properties;
 import java.util.TreeMap;
 
-import sun.misc.BASE64Encoder;
+import java.util.Base64;
 
 /**
  * @author oleg shteynbuk
@@ -180,7 +180,7 @@ public class ResultSetlUtil {
 
 		if (userInfo != null && userInfo.trim().length() != 0)
 		{
-			BASE64Encoder encoder = new BASE64Encoder();
+			Base64.Encoder encoder = Base64.getEncoder();
 			aConnection.setRequestProperty("Authorization",
 			                            "Basic " + encoder.encode( userInfo.getBytes()));			
 		 

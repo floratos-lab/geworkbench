@@ -322,7 +322,7 @@
 			<jvmarg value="-Xmx1024M" />
 			<jvmarg value="-XX:MaxPermSize=128m" />
 			<jvmarg value="-Djava.library.path=${Dlib}" />
-			<jvmarg value="-Xbootclasspath/p:${bootclasspath}" />
+			<jvmarg value="-Xbootclasspath/a:${bootclasspath}" />
 			<classpath refid="run.classpath" />
 		</java>
 	</target>

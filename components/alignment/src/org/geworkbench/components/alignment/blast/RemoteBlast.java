@@ -143,7 +143,7 @@ public class RemoteBlast {
 				retryhandler);
 		client.getParams().setCookiePolicy(CookiePolicy.IGNORE_COOKIES);
 
-		String submitURLString = "http://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Put"
+		String submitURLString = "https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Put"
 				+ cmdLine;
 		LOG.debug("query URL string: '"+submitURLString+"'");
 		PostMethod post = new PostMethod(submitURLString);

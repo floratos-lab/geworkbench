@@ -122,8 +122,6 @@ public abstract class AbstractAnalysis implements Analysis, Serializable,
 
 	public static final int ALLELIC_FREQUENCY_TYPE = 24;
 
-	public static final int NETBOOST_TYPE = 25;
-
 	public static final int SKYLINE_TYPE = 26;
 
 	public static final int MARKUS_TYPE = 27;
@@ -133,8 +131,6 @@ public abstract class AbstractAnalysis implements Analysis, Serializable,
 	public static final int SKYBASE_TYPE = 29;
 
 	public static final int PUDGE_TYPE = 30;
-
-	public static final int MEDUSA_TYPE = 31;
 
 	public static final int FOLD_CHANGE_TYPE = 32;
 

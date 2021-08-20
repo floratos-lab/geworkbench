@@ -130,7 +130,6 @@
 				<include name="markus" />
 				<include name="masterregulator" />
 				<include name="matrixreduce" />
-				<include name="medusa" />
 				<include name="microarrays" />
 				<include name="mindy" />
 

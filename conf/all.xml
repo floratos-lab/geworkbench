@@ -62,12 +62,6 @@
 	<plugin id="tabDelimitedDataMatrixFileFilter" name="Tab-Delimited Data Matrix File Format"
 		class="org.geworkbench.parsers.TabDelimitedDataMatrixFileFormat" />
 
-	<!--
-	<plugin id="edgeListFilter" name="Edge List File Format"
-		class="org.geworkbench.components.parsers.EdgeListFileFormat" />
-
-	 -->
-
 	<plugin id="commentsPanel" name="Dataset Annotation"
 		class="org.geworkbench.builtin.projects.comments.CommentsPanel">
 	</plugin>

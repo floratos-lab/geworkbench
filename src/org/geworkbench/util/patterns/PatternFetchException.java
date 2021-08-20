@@ -2,14 +2,8 @@ package org.geworkbench.util.patterns;
 
 
 /**
- * <p>Title: Sequence and Pattern Plugin</p>
- * <p>Description: This exception is thrown when a pattern can't be fetched
- * from a pattern source. See class medusa.components.patternSource;</p>
- * <p>Copyright: Copyright (c) 2003</p>
- * <p>Company: </p>
- *
- * @author not attributable
- * @version $Id$
+ * This exception is thrown when a pattern can't be fetched
+ * from a pattern source.
  */
 
 public class PatternFetchException extends RuntimeException {

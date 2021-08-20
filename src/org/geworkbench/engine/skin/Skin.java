@@ -51,19 +51,12 @@ import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import net.eleritec.docking.DockableAdapter;
-import net.eleritec.docking.DockingManager;
-import net.eleritec.docking.DockingPort;
-import net.eleritec.docking.defaults.ComponentProviderAdapter;
-import net.eleritec.docking.defaults.DefaultDockingPort;
-
 import org.apache.commons.collections15.map.ReferenceMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geworkbench.bison.datastructure.biocollections.DSDataSet;
 import org.geworkbench.bison.datastructure.bioobjects.DSBioObject;
 import org.geworkbench.builtin.projects.Icons;
-import org.geworkbench.engine.ccm.ComponentConfigurationManagerWindow2;
 import org.geworkbench.engine.config.Closable;
 import org.geworkbench.engine.config.GUIFramework;
 import org.geworkbench.engine.config.PluginDescriptor;
@@ -73,6 +66,12 @@ import org.geworkbench.engine.management.ComponentRegistry;
 import org.geworkbench.engine.properties.PropertiesManager;
 import org.geworkbench.util.FilePathnameUtils;
 import org.geworkbench.util.JAutoList;
+
+import net.eleritec.docking.DockableAdapter;
+import net.eleritec.docking.DockingManager;
+import net.eleritec.docking.DockingPort;
+import net.eleritec.docking.defaults.ComponentProviderAdapter;
+import net.eleritec.docking.defaults.DefaultDockingPort;
 
 /**
  * <p>Title: Bioworks</p>
@@ -266,17 +265,7 @@ public class Skin extends GUIFramework {
                 chooseComponent();
             }
         });//        contentPane.addKeyListener(new KeyAdapter() {
-        
-        final String RCM_DIALOG = "rcm-dialog";
-        contentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0), RCM_DIALOG);
-        contentPane.getActionMap().put(RCM_DIALOG, new AbstractAction() {
-			private static final long serialVersionUID = 3053589598512384113L;
 
-			public void actionPerformed(ActionEvent event) {
-                loadRCM();
-            }
-        });
-        
         ActionListener timerAction = new ActionListener() {
         	final private static long MEGABYTE = 1024*1024;
             public void actionPerformed(ActionEvent evt) {
@@ -297,10 +286,6 @@ public class Skin extends GUIFramework {
         public boolean cancelled = false;
     }
 
-    void loadRCM(){
-    	ComponentConfigurationManagerWindow2.load();
-    }
-    
 	void chooseComponent() {
         if (acceptors == null) {
             // Get all appropriate acceptors

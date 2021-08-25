@@ -666,7 +666,6 @@
 				<include name="log4j.properties" />
 			</fileset>
 		</copy>
-		<copy file="build_runDirect.xml" tofile="${cleanFolder}/build.xml" />
 	</target>
 	<!-- ====================================================================== -->
 	<!-- CREATE DISTRIBUTABLE JARS, e.g. for Web version -->

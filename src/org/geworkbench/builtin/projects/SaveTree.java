@@ -55,9 +55,6 @@ public class SaveTree implements Serializable {
 			if (dataSet.getID() == null)
 				dataSet.setID(RandomNumberGenerator.getID());
 			return dataSet;
-		} else if (treeNode instanceof PendingTreeNode) {
-			PendingTreeNode childNode = (PendingTreeNode) treeNode;
-			return childNode.getDSDataSet();
 		}
 		return null; // unexpected;
 	}

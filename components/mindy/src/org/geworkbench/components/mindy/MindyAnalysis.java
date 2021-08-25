@@ -1,12 +1,10 @@
 package org.geworkbench.components.mindy;
 
-import java.io.Serializable;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Observable;
 
 import javax.swing.JOptionPane;
@@ -15,7 +13,7 @@ import javax.swing.SwingUtilities;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.geworkbench.analysis.AbstractGridAnalysis;
+import org.geworkbench.analysis.AbstractAnalysis;
 import org.geworkbench.bison.datastructure.biocollections.DSDataSet;
 import org.geworkbench.bison.datastructure.biocollections.microarrays.CSMicroarraySet;
 import org.geworkbench.bison.datastructure.biocollections.microarrays.DSMicroarraySet;
@@ -39,12 +37,12 @@ import org.geworkbench.util.pathwaydecoder.mutualinformation.MindyDataSet;
 import org.geworkbench.util.pathwaydecoder.mutualinformation.MindyResultRow;
 import org.geworkbench.util.pathwaydecoder.mutualinformation.ModulatorInfo;
 
+import edu.columbia.c2b2.mindy.Mindy;
+import edu.columbia.c2b2.mindy.MindyResults;
 import wb.data.Marker;
 import wb.data.MarkerSet;
 import wb.data.Microarray;
 import wb.data.MicroarraySet;
-import edu.columbia.c2b2.mindy.Mindy;
-import edu.columbia.c2b2.mindy.MindyResults;
 
 /**
  * @author Matt Hall
@@ -53,7 +51,7 @@ import edu.columbia.c2b2.mindy.MindyResults;
  * @author oshteynb
  * @version $Id$
  */
-public class MindyAnalysis extends AbstractGridAnalysis implements
+public class MindyAnalysis extends AbstractAnalysis implements
 		ClusteringAnalysis {
 
 	private static final long serialVersionUID = -3116424364457413572L;
@@ -61,8 +59,6 @@ public class MindyAnalysis extends AbstractGridAnalysis implements
 	private static Log log = LogFactory.getLog(MindyAnalysis.class);
 
 	private MindyParamPanel paramPanel;
-
-	private static final String analysisName = "Mindy";
 
 	/**
 	 * Constructor. Creates MINDY parameter panel.
@@ -591,67 +587,6 @@ public class MindyAnalysis extends AbstractGridAnalysis implements
 		}
 
 		return returnSet;
-	}
-
-	// the following methods implemented for AbstractGridAnalysis
-	@Override
-	public String getAnalysisName() {
-		return analysisName;
-	}
-
-	@Override
-	protected Map<Serializable, Serializable> getBisonParameters() {
-		Map<Serializable, Serializable> bisonParameters = new HashMap<Serializable, Serializable>();
-		// protected AbstractSaveableParameterPanel aspp is defined in
-		// AbstractAnalysis
-		MindyParamPanel paramPanel = (MindyParamPanel) this.aspp;
-
-		ArrayList<String> modulatorGeneList = paramPanel.getModulatorGeneList();
-		bisonParameters.put("modulatorGeneList", modulatorGeneList);
-		ArrayList<String> targetGeneList = paramPanel.getTargetGeneList();
-		bisonParameters.put("targetGeneList", targetGeneList);
-		String transcriptionFactor = paramPanel.getTranscriptionFactor(); // this
-		// is
-		// labeled
-		// "Hub
-		// marker"
-		// on
-		// GUI
-		bisonParameters.put("transcriptionFactor", transcriptionFactor);
-		int setFraction = paramPanel.getSetFraction();
-		bisonParameters.put("setFraction", setFraction);
-
-		String conditional = paramPanel.getConditional().trim();
-		bisonParameters.put("conditional", conditional);
-		float conditionalValue = paramPanel.getConditionalValue();
-		bisonParameters.put("conditionalValue", conditionalValue);
-		String conditionalCorrection = paramPanel.getConditionalCorrection();
-		bisonParameters.put("conditionalCorrection", conditionalCorrection);
-
-		ArrayList<String> dpiAnnotList = paramPanel.getDPIAnnotatedGeneList();
-		bisonParameters.put("dpiAnnotList", dpiAnnotList);
-		float dpiTolerance = paramPanel.getDPITolerance();
-		bisonParameters.put("dpiTolerance", dpiTolerance);
-
-		bisonParameters.put("candidateModulatorsFile",
-				paramPanel.getCandidateModulatorsFile());
-
-		return bisonParameters;
-	}
-
-	@Override
-	public Class<?> getBisonReturnType() {
-		return MindyDataSet.class;
-	}
-
-	@Override
-	protected boolean useMicroarraySetView() {
-		return true;
-	}
-
-	@Override
-	protected boolean useOtherDataSet() {
-		return false;
 	}
 
 	@Override

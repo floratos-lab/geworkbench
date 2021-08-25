@@ -1,13 +1,9 @@
 package org.geworkbench.components.somclustering;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 import org.geworkbench.analysis.AbstractAnalysis;
-import org.geworkbench.analysis.AbstractGridAnalysis;
 import org.geworkbench.bison.datastructure.biocollections.DSDataSet;
 import org.geworkbench.bison.datastructure.biocollections.views.DSMicroarraySetView;
 import org.geworkbench.bison.datastructure.bioobjects.markers.DSGeneMarker;
@@ -44,7 +40,7 @@ import org.geworkbench.util.ProgressBar;
  * <p>
  * &nbsp;&nbsp;&nbsp; org.tigr.microarray.mev.cluster.algorithm.impl
  */
-public class SOMAnalysis extends AbstractGridAnalysis implements
+public class SOMAnalysis extends AbstractAnalysis implements
 		ClusteringAnalysis {
 	/**
 	 * 
@@ -567,34 +563,6 @@ public class SOMAnalysis extends AbstractGridAnalysis implements
         return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#getBisonParameters()
-	 */
-	@Override
-	protected Map<Serializable, Serializable> getBisonParameters() {
-
-		Map<Serializable, Serializable> parameterMap = new HashMap<Serializable, Serializable>();
-
-		int alignmentX = ((SOMPanel) aspp).getRows();
-		int alignmentY = ((SOMPanel) aspp).getColumns();
-		int iterations = ((SOMPanel) aspp).getIterations();
-
-		float radius = ((SOMPanel) aspp).getRadius();
-		float alpha = ((SOMPanel) aspp).getLearningRate();
-		String function = ((SOMPanel) aspp).getFunction();
-
-		parameterMap.put("dimx", alignmentX);
-		parameterMap.put("dimy", alignmentY);
-		parameterMap.put("iterations", iterations);
-		parameterMap.put("radius", radius);
-		parameterMap.put("alpha", alpha);
-		parameterMap.put("function", function);
-
-		return parameterMap;
-	}
-
 	private String generateDataSetHistory(int dim_x, int dim_y, int iterations, boolean is_neighborhood_bubble, float radius, float alpha, DSMicroarraySetView<? extends DSGeneMarker, ? extends DSMicroarray> data){
 		String answer="";
 		answer+=aspp.getDataSetHistory();
@@ -607,43 +575,6 @@ public class SOMAnalysis extends AbstractGridAnalysis implements
 			answer+="\t"+marker.getLabel()+"\n";
 		}		
 		return answer;
-	}
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#getAnalysisName()
-	 */
-	@Override
-	public String getAnalysisName() {
-		return analysisName;
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#getBisonReturnType()
-	 */
-	@Override
-	public Class<?> getBisonReturnType() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#useMicroarraySetView()
-	 */
-	@Override
-	protected boolean useMicroarraySetView() {
-		return true;
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#useOtherDataSet()
-	 */
-	@Override
-	protected boolean useOtherDataSet() {
-		return false;
 	}
 
 	@Override

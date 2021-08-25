@@ -46,9 +46,6 @@ public class TreeNodeRenderer extends DefaultTreeCellRenderer {
         if (value == tree.getModel().getRoot()) {
             setIcon(Icons.WORKSPACE_ICON);
             setToolTipText("This is the workspace.");
-        } else if(value.getClass() == PendingTreeNode.class){
-        	setIcon(Icons.BUSY_STATIC_ICON);
-        	setToolTipText(null);
         } else {
             if (value.getClass() == DataSetNode.class) {
                 DSDataSet<? extends DSBioObject> df = ((DataSetNode) value).getDataset();

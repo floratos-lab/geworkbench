@@ -10,6 +10,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -26,12 +28,13 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geworkbench.bison.model.analysis.AlgorithmExecutionResults;
-import org.ginkgo.labs.reader.XmlReader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -318,13 +321,30 @@ class TestAnalysis extends AbstractAnalysis {
 		}
 		File f = new File(TEST_PARAMS_XML);
 		if (f.exists()) {
-			Document doc = XmlReader.readXmlFile(TEST_PARAMS_XML);
+			Document doc = readXmlFile(TEST_PARAMS_XML);
 			NodeList nl = doc.getElementsByTagName(ID_TAG);
 			for (int i = 0; i < nl.getLength(); i++) {
 				Node idNode = nl.item(i).getFirstChild();
 				savedParamsData.addElement(idNode.getNodeValue());
 			}
 		}
+	}
+
+	private static Document readXmlFile(String filename) {
+
+		DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory
+				.newInstance();
+		DocumentBuilder docBuilder = null;
+		Document doc = null;
+		try {
+			docBuilder = docBuilderFactory.newDocumentBuilder();
+			InputStream is = new FileInputStream(filename);
+			doc = docBuilder.parse(is);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		return doc;
 	}
 
 	private boolean findInParameterList(String name) {

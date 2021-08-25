@@ -292,7 +292,7 @@ public class FilteringPanel extends CommandBase implements VisualPlugin, ReHighl
 	public void receive(org.geworkbench.events.ProjectEvent pe, Object source) {
 		DSDataSet<?> dataSet = pe.getDataSet();
 		if (dataSet != null) clearMenuItems();
-		if (dataSet != null && dataSet instanceof DSMicroarraySet && !pendingNodeSelected()) {
+		if (dataSet != null && dataSet instanceof DSMicroarraySet) {
 			maSet = (DSMicroarraySet) dataSet;			 
 			FilterOptionPanel.arrayNumber = maSet.size();
 			getAvailableFilters();
@@ -304,7 +304,7 @@ public class FilteringPanel extends CommandBase implements VisualPlugin, ReHighl
 	@Subscribe
 	public void receive(org.geworkbench.events.CCMUpdateEvent pe, Object source) {
 		Class<? extends DSDataSet> dataSetType = pe.getDataSetType();
-		if (dataSetType != null && DSMicroarraySet.class.isAssignableFrom(dataSetType) && !pendingNodeSelected()) {
+		if (dataSetType != null && DSMicroarraySet.class.isAssignableFrom(dataSetType)) {
 			clearMenuItems();
 			getAvailableFilters();
 			updateMenuItems();

@@ -1,11 +1,9 @@
 package org.geworkbench.components.masterregulator;
 
-import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.swing.JOptionPane;
@@ -13,7 +11,7 @@ import javax.swing.JOptionPane;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.geworkbench.analysis.AbstractGridAnalysis;
+import org.geworkbench.analysis.AbstractAnalysis;
 import org.geworkbench.bison.annotation.CSAnnotationContext;
 import org.geworkbench.bison.datastructure.biocollections.AdjacencyMatrixDataSet;
 import org.geworkbench.bison.datastructure.biocollections.DSAncillaryDataSet;
@@ -37,12 +35,11 @@ import org.geworkbench.engine.management.Subscribe;
  * @author yc2480
  * @version $Id$
  */
-public class MARINa extends AbstractGridAnalysis implements
+public class MARINa extends AbstractAnalysis implements
 		ClusteringAnalysis {
 	private static final long serialVersionUID = 940204157465957195L;
 	
 	private static Log log = LogFactory.getLog(MARINa.class);
-	private final String analysisName = "MRA"; // don't change this. this the name used by the server side code (caGrid service)
     private static final Pattern pattern = Pattern.compile("^mra\\d+$");
 	private MARINaPanel mraAnalysisPanel = new MARINaPanel();
 
@@ -174,56 +171,6 @@ public class MARINa extends AbstractGridAnalysis implements
 			org.geworkbench.events.SubpanelChangedEvent<DSGeneMarker> event) {
 		return event;
 	}	
-	 
-	@Override
-	public String getAnalysisName() {
-		return analysisName;
-	}
-
-	@Override
-	protected Map<Serializable, Serializable> getBisonParameters() {
-		Map<Serializable, Serializable> parameterMap = new HashMap<Serializable, Serializable>();
-		if (mraAnalysisPanel.getResultid() != null){
-			parameterMap.put("resultid", mraAnalysisPanel.getResultid());
-			return parameterMap;
-		}
-		byte[] network = mraAnalysisPanel.getNetwork();
-		if (network == null){
-			parameterMap.put("network", null);
-			return parameterMap;
-		}
-		parameterMap.put("mintg", mraAnalysisPanel.getMintg());
-		parameterMap.put("minsp", mraAnalysisPanel.getMinsp());
-		parameterMap.put("nperm", mraAnalysisPanel.getNperm());
-		parameterMap.put("pvgsea", mraAnalysisPanel.getPValue());
-		parameterMap.put("tail", mraAnalysisPanel.getTail());
-		parameterMap.put("pvshadow", mraAnalysisPanel.getPVshadow());
-		parameterMap.put("pvsynergy", mraAnalysisPanel.getPVsynergy());
-		parameterMap.put("networkname", mraAnalysisPanel.getNetworkFilename());
-		parameterMap.put("network", network);network=null;
-		if (mraAnalysisPanel.allpos && mraAnalysisPanel.getTail()==2){
-			JOptionPane.showMessageDialog(null, "Since all Spearman's correlation >= 0, gsea will use tail = 1.");
-			parameterMap.put("tail", 1);
-		}
-		parameterMap.put("class1", mraAnalysisPanel.getIxClass(CSAnnotationContext.CLASS_CASE).toArray(new String[0]));
-		parameterMap.put("class2", mraAnalysisPanel.getIxClass(CSAnnotationContext.CLASS_CONTROL).toArray(new String[0]));
-		return parameterMap;
-	}
-
-	@Override
-	public Class<?> getBisonReturnType() {
-		return String.class;
-	}
-
-	@Override
-	protected boolean useMicroarraySetView() {
-		return true;
-	}
-
-	@Override
-	protected boolean useOtherDataSet() {
-		return false;
-	}
 
 	@Override
 	public ParamValidationResults validInputData(

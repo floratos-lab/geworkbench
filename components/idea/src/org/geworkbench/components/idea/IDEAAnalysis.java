@@ -3,7 +3,6 @@ package org.geworkbench.components.idea;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -19,7 +18,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.math.MathException;
-import org.geworkbench.analysis.AbstractGridAnalysis;
+import org.geworkbench.analysis.AbstractAnalysis;
 import org.geworkbench.bison.datastructure.biocollections.AdjacencyMatrixDataSet;
 import org.geworkbench.bison.datastructure.biocollections.DSAncillaryDataSet;
 import org.geworkbench.bison.datastructure.biocollections.DSDataSet;
@@ -51,7 +50,7 @@ import org.geworkbench.util.ProgressBar;
  * @author zm2165
  * @version $Id$
  */
-public class IDEAAnalysis extends AbstractGridAnalysis implements
+public class IDEAAnalysis extends AbstractAnalysis implements
 		ClusteringAnalysis {
 	private static final long serialVersionUID = 7928879302023716304L;
 
@@ -367,44 +366,6 @@ public class IDEAAnalysis extends AbstractGridAnalysis implements
 			pbIdea.dispose();
 		if (pbPrepare!=null)
 			pbPrepare.dispose();
-	}
-
-	@Override
-	public String getAnalysisName() {
-		return "Idea";
-	}
-
-	@Override
-	protected Map<Serializable, Serializable> getBisonParameters() {
-		
-		Map<Serializable, Serializable> bisonParameters = new HashMap<Serializable, Serializable>();
-		IDEAPanel paramPanel = (IDEAPanel) this.aspp;
-		float pvalue=Float.parseFloat(paramPanel.getPvalue());
-		bisonParameters.put("pvalue", pvalue);				
-		String[] phenotype= paramPanel.getPhenotypeAsString();
-		bisonParameters.put("phenotype", phenotype);
-		String[] network= paramPanel.getNetworkAsString();
-		bisonParameters.put("network", network);
-		
-		String[] nullData= nullDataAsString;
-		bisonParameters.put("nullData", nullData);
-		
-		return bisonParameters;
-	}
-
-	@Override
-	public Class<?> getBisonReturnType() {
-		return IdeaResultDataSet.class;
-	}
-
-	@Override
-	protected boolean useMicroarraySetView() {
-		return true;
-	}
-
-	@Override
-	protected boolean useOtherDataSet() {
-		return false;
 	}
 
 	@Override

@@ -28,11 +28,9 @@ import org.bussemakerlab.MatrixREDUCE.XML.Psam;
 import org.bussemakerlab.MatrixREDUCE.XML.Slope;
 import org.bussemakerlab.MatrixREDUCE.engine.MatrixREDUCE;
 import org.geworkbench.analysis.AbstractAnalysis;
-import org.geworkbench.analysis.AbstractGridAnalysis;
 import org.geworkbench.bison.datastructure.biocollections.DSDataSet;
 import org.geworkbench.bison.datastructure.biocollections.microarrays.DSMicroarraySet;
 import org.geworkbench.bison.datastructure.biocollections.views.DSMicroarraySetView;
-import org.geworkbench.bison.datastructure.bioobjects.DSBioObject;
 import org.geworkbench.bison.datastructure.bioobjects.markers.DSGeneMarker;
 import org.geworkbench.bison.datastructure.bioobjects.microarray.DSMicroarray;
 import org.geworkbench.bison.datastructure.complex.panels.DSItemList;
@@ -47,8 +45,6 @@ import org.geworkbench.bison.model.analysis.ClusteringAnalysis;
 import org.geworkbench.bison.model.analysis.ParamValidationResults;
 import org.geworkbench.builtin.projects.history.HistoryPanel;
 import org.geworkbench.engine.management.Publish;
-import org.geworkbench.engine.management.Subscribe;
-import org.geworkbench.events.ProjectNodePostCompletedEvent;
 import org.geworkbench.util.FilePathnameUtils;
 import org.geworkbench.util.ProgressBar;
 import org.geworkbench.util.Util;
@@ -59,7 +55,7 @@ import org.geworkbench.util.Util;
  * @author ch2514
  * @version $Id$
  */
-public class MatrixReduceAnalysis extends AbstractGridAnalysis implements
+public class MatrixReduceAnalysis extends AbstractAnalysis implements
 		ClusteringAnalysis, Observer {
 	private static final long serialVersionUID = -4742601328385348469L;
 
@@ -90,8 +86,6 @@ public class MatrixReduceAnalysis extends AbstractGridAnalysis implements
 	public static final String PARAM_MAXMOTIF = "maxmotif";
 
 	public static final String PARAM_STRAND = "strand";
-
-	private final String analysisName = "MatrixREDUCE";
 
 	MatrixReduceParamPanel params = null;
 
@@ -186,16 +180,6 @@ public class MatrixReduceAnalysis extends AbstractGridAnalysis implements
 		parameterMap.put(PARAM_STRAND, new Integer(params.getStrand()));
 
 		return parameterMap;
-	}
-
-	@Override
-	public Class<?> getBisonReturnType() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public String getAnalysisName() {
-		return this.analysisName;
 	}
 
 	// not used
@@ -624,26 +608,6 @@ public class MatrixReduceAnalysis extends AbstractGridAnalysis implements
 		return data;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#useMicroarraySetView()
-	 */
-	@Override
-	protected boolean useMicroarraySetView() {
-		return true;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#useOtherDataSet()
-	 */
-	@Override
-	protected boolean useOtherDataSet() {
-		return false;
-	}
-
 	public void update(java.util.Observable ob, Object o) {
 		log.warn("Cancelling MatrixREDUCE Analysis.");
 		stopAlgorithm = true;
@@ -657,22 +621,5 @@ public class MatrixReduceAnalysis extends AbstractGridAnalysis implements
 			DSDataSet<?> refMASet) {
 		// FIXME: we should do some checking before analysis.
 		return new ParamValidationResults(true, "Didn't check");
-	}
-
-	@Subscribe
-	public void receive(ProjectNodePostCompletedEvent projectNodeCompleteEvent,
-			Object source) {
-		if(params.saveRunLog()){
-			DSDataSet<? extends DSBioObject> data = projectNodeCompleteEvent.getAncillaryDataSet();
-			if ((data != null) && (data instanceof DSMatrixReduceSet)) {
-				String runlog = ((DSMatrixReduceSet) data).getRunLog();
-				if (!StringUtils.isEmpty(runlog)) {
-					log.info("Received run log from grid service.");
-					HistoryPanel.addToHistory(data,
-							"\nMatrixREDUCE Output:\n----------------------------------------\n"
-									+ runlog);
-				}
-			}
-		}
 	}
 }

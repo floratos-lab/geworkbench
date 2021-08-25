@@ -3,43 +3,31 @@ package org.geworkbench.components.analysis;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
-import java.rmi.RemoteException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
 
-import org.apache.axis.types.URI.MalformedURIException;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geworkbench.analysis.AbstractAnalysis;
 import org.geworkbench.analysis.AbstractAnalysisLabelComparator;
-import org.geworkbench.analysis.AbstractGridAnalysis;
 import org.geworkbench.analysis.AbstractSaveableParameterPanel;
 import org.geworkbench.analysis.HighlightCurrentParameterThread;
 import org.geworkbench.analysis.ParameterKey;
@@ -70,26 +58,20 @@ import org.geworkbench.builtin.projects.DataSetSubNode;
 import org.geworkbench.builtin.projects.ProjectPanel;
 import org.geworkbench.builtin.projects.ProjectTreeNode;
 import org.geworkbench.builtin.projects.history.HistoryPanel;
-import org.geworkbench.components.cagrid.gui.GridServicePanel;
 import org.geworkbench.engine.config.VisualPlugin;
 import org.geworkbench.engine.management.ComponentRegistry;
 import org.geworkbench.engine.management.Publish;
 import org.geworkbench.engine.management.Subscribe;
-import org.geworkbench.engine.properties.PropertiesManager;
 import org.geworkbench.events.AnalysisAbortEvent;
 import org.geworkbench.events.AnalysisCompleteEvent;
 import org.geworkbench.events.AnalysisInvokedEvent;
 import org.geworkbench.events.GeneSelectorEvent;
 import org.geworkbench.events.SubpanelChangedEvent;
 import org.geworkbench.util.CommandBase;
-import org.geworkbench.util.ProgressBar;
 import org.geworkbench.util.Util;
-import org.ginkgo.labs.ws.GridEndpointReferenceType;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
-
-import edu.columbia.geworkbench.cagrid.dispatcher.client.DispatcherClient;
 
 /**
  * Application component offering users a selection of microarray data
@@ -109,22 +91,8 @@ public class AnalysisPanel extends CommandBase implements
 	/* static variables */
 	private static final String DEFAULT_PARAMETER_SETTING_NAME = "New Parameter Setting Name";
 	private static final String PARAMETERS = "Parameters";
-	private static final String USER_INFO = "userinfo";
-
-	private static final String USER_INFO_DELIMIETER = "==";
 
 	private static final String NEWLINE = "\n";
-	private static final String TAB = "\t";
-	
-	/* from application.properties */
-	private final static String DISPATCHER_URL = "dispatcher.url";
-
-	/* from PropertiesManager (user preference) */
-	private static final String GRID_HOST_KEY = "dispatcherURL";
-
-	private String dispatcherUrl = System.getProperty(DISPATCHER_URL);
-
-	private String userInfo = null;
 
 	private final JPanel parameterPanel = new JPanel();
 	private ParameterPanel currentParameterPanel = new ParameterPanel(); // place holder
@@ -133,13 +101,8 @@ public class AnalysisPanel extends CommandBase implements
 
 	private JTabbedPane jAnalysisTabbedPane = null;
 
-    private GridServicePanel jGridServicePanel = null;
-
 	private JButton save = null;
 	private JButton delete = null;
-
-	// threads to check submitted caGrid service jobs
-	private List<Thread> threadList = new ArrayList<Thread>();
 
 	private AbstractAnalysis selectedAnalysis = null;
 
@@ -264,164 +227,6 @@ public class AnalysisPanel extends CommandBase implements
 	public AnalysisInvokedEvent publishAnalysisInvokedEvent(
 			AnalysisInvokedEvent event) {
 		return event;
-	}
-
-	/**
-	 * 
-	 * @param ppne
-	 * @param source
-	 */
-	@Subscribe
-	public void receive(
-			org.geworkbench.events.PendingNodeLoadedFromWorkspaceEvent ppne,
-			Object source) {
-		DispatcherClient dispatcherClient = null;
-		try {
-			PropertiesManager pm = PropertiesManager.getInstance();
-			String savedHost = null;
-			try {
-				savedHost = pm.getProperty(this.getClass(), GRID_HOST_KEY,
-						dispatcherUrl);
-				if (!StringUtils.isEmpty(savedHost)) {
-					dispatcherUrl = savedHost;
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-			dispatcherClient = new DispatcherClient(dispatcherUrl);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		Map<GridEndpointReferenceType, AbstractGridAnalysis> gridEprs = ppne.getGridEprs();
-
-		for (GridEndpointReferenceType gridEpr : gridEprs.keySet()) {
-
-			// to control the complexity, let's not support the analysis Abort/Complete event
-			// in the case of restoring workspace for now
-			PollingThread pollingThread = new PollingThread(gridEpr,
-					dispatcherClient, null, this, gridEprs.get(gridEpr));
-			threadList.add(pollingThread);
-			pollingThread.start();
-
-		}
-
-	}
-
-	 
-
-	@Subscribe
-	public void receive(org.geworkbench.events.PendingNodeCancelledEvent e,
-			Object source) {
-		for (Iterator<Thread> iterator = threadList.iterator(); iterator
-				.hasNext();) {
-			PollingThread element = (PollingThread) iterator.next();
-			if (element.getGridEPR() == e.getGridEpr()) {
-				element.cancel();
-			}
-		}
-	}
-
-	/**
-	 * 
-	 * @return boolean
-	 */
-	private boolean isGridAnalysis() {
-		if (jGridServicePanel != null) {
-			return jGridServicePanel.isCaGridVersion();
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * 
-	 * @return String
-	 */
-	private String getServiceUrl() {
-		return jGridServicePanel.getServiceUrl();
-	}
-
-	/*
-	 * 
-	 */
-	private void getUserInfo() {
-		final JDialog userpasswdDialog = new JDialog();
-		log.debug("getting user info...");
-
-		DefaultFormBuilder usernamePasswdPanelBuilder = new DefaultFormBuilder(
-				new FormLayout("right:35dlu"));
-
-		final JTextField usernameField = new JTextField(15);
-		final JPasswordField passwordField = new JPasswordField(15);
-
-		JPanel buttonPanel = new JPanel(new FlowLayout());
-		JButton okButton = new JButton("Ok");
-		okButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String username = usernameField.getText();
-				String passwd = new String(passwordField.getPassword());
-				if (username.trim().equals("") || passwd.trim().equals("")) {
-					userInfo = null;
-				} else {
-					userInfo = username + USER_INFO_DELIMIETER + passwd;
-					PropertiesManager properties = PropertiesManager
-							.getInstance();
-					try {
-						properties.setProperty(this.getClass(), USER_INFO,
-								String.valueOf(userInfo));
-					} catch (IOException ioe) {
-						ioe.printStackTrace();
-					}
-				}
-				userpasswdDialog.dispose();
-			}
-		});
-
-		JButton cancelButton = new JButton("Cancel");
-		cancelButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				userInfo = "";
-				userpasswdDialog.dispose();
-			}
-		});
-
-		/* add to button panel */
-		buttonPanel.add(okButton);
-		buttonPanel.add(cancelButton);
-
-		/* the builder */
-		usernamePasswdPanelBuilder.appendColumn("5dlu");
-		usernamePasswdPanelBuilder.appendColumn("45dlu");
-
-		usernamePasswdPanelBuilder.append("username", usernameField);
-		usernamePasswdPanelBuilder.append("password", passwordField);
-
-		PropertiesManager pm = PropertiesManager.getInstance();
-		String savedUserInfo = null;
-		try {
-			savedUserInfo = pm.getProperty(this.getClass(), USER_INFO, "");
-			if (!StringUtils.isEmpty(savedUserInfo)) {
-				String s[] = savedUserInfo.split(USER_INFO_DELIMIETER);
-				if (s.length >= 2) {
-					usernameField.setText(s[0]);
-					passwordField.setText(s[1]);
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		JPanel indexServicePanel = new JPanel(new BorderLayout());
-		indexServicePanel.add(usernamePasswdPanelBuilder.getPanel());
-		indexServicePanel.add(buttonPanel, BorderLayout.SOUTH);
-		userpasswdDialog.add(indexServicePanel);
-		userpasswdDialog.setModal(true);
-		userpasswdDialog.pack();
-		Util.centerWindow(userpasswdDialog);
-		userpasswdDialog.setVisible(true);
-		log.debug("got user info: " + userInfo);
 	}
 
 	/**
@@ -655,17 +460,6 @@ public class AnalysisPanel extends CommandBase implements
 			setNamedParameters(new String[0]);
 		}
 
-		if (selectedAnalysis instanceof AbstractGridAnalysis) {
-			if (selectedAnalysis != pidMap.get(lastDataType)) {			 
-				if (jGridServicePanel != null)
-				   jAnalysisTabbedPane.remove(jGridServicePanel);
-				jGridServicePanel = new GridServicePanel( ((AbstractGridAnalysis)selectedAnalysis).getAnalysisName() );
-				jAnalysisTabbedPane.addTab("Services", jGridServicePanel);
-			}
-		} else {		 
-			jAnalysisTabbedPane.remove(jGridServicePanel);
-			jGridServicePanel = null; // prevent remembering the last grid panel in case we switch from grid to local
-		}
 		pidMap.put(lastDataType, selectedAnalysis);
 	}
 
@@ -773,12 +567,7 @@ public class AnalysisPanel extends CommandBase implements
 
 			Thread t = new Thread(new Runnable() {
 				public void run() {
-					/* check if we are dealing with a grid analysis */
-					if (isGridAnalysis()) {
-						submitAsCaGridService(invokeEvent, dataset, maSetView);
-					} else {						
-						executeLocally(invokeEvent, dataset, maSetView);
-					}
+					executeLocally(invokeEvent, dataset, maSetView);
 					analyze.setEnabled(true);
 				}
 
@@ -787,116 +576,6 @@ public class AnalysisPanel extends CommandBase implements
 			t.start();
 			return true;
 		}
-	}
-
-	private void submitAsCaGridService(final AnalysisInvokedEvent invokeEvent,
-			DSDataSet<? extends DSBioObject> dataset,
-			DSMicroarraySetView<DSGeneMarker, DSMicroarray> maSetView) {
-
-		Date startDate = new Date();
-		Long startTime =startDate.getTime();
-		
-		AbstractGridAnalysis selectedGridAnalysis = (AbstractGridAnalysis) selectedAnalysis;
-
-		ParamValidationResults validResult = ((AbstractGridAnalysis) selectedAnalysis)
-				.validInputData(maSetView, dataset);
-		if (!validResult.isValid()) {
-			JOptionPane.showMessageDialog(null, validResult
-					.getMessage(), "Invalid Input Data",
-					JOptionPane.ERROR_MESSAGE);
-			return;
-		} else if(validResult.getMessage()!=null && validResult.getMessage().equals("QUIT")) {
-			return;
-		}
-
-		if (selectedGridAnalysis.isAuthorizationRequired()) {
-			/* ask for username and password */
-			getUserInfo();
-			if (userInfo == null) {
-				JOptionPane
-						.showMessageDialog(
-								null,
-								"Please make sure you entered a valid username and password",
-								"Invalid User Account",
-								JOptionPane.ERROR_MESSAGE);
-				publishAnalysisAbortEvent(new AnalysisAbortEvent(invokeEvent));
-				return;
-			}
-			if (StringUtils.isEmpty(userInfo)) {
-				userInfo = null;
-				publishAnalysisAbortEvent(new AnalysisAbortEvent(invokeEvent));
-				return;
-			}
-		}
-
-		String url = getServiceUrl();
-		if (StringUtils.isEmpty(url)) {
-			log.error("Cannot execute with url:  " + url);
-			JOptionPane.showMessageDialog(null,
-					"Cannot execute grid analysis: Invalid URL "+url+" specified.",
-					"Invalid grid URL Error", JOptionPane.ERROR_MESSAGE);
-			publishAnalysisAbortEvent(new AnalysisAbortEvent(invokeEvent));
-			return;
-		}
-
-		ProgressBar pBar = Util.createProgressBar("Grid Services",
-				"Submitting service request");
-		pBar.start();
-		pBar.reset();
-
-		List<Serializable> serviceParameterList = ((AbstractGridAnalysis) selectedGridAnalysis)
-				.handleBisonInputs(maSetView, dataset);
-
-		/* adding user info */
-		serviceParameterList.add(userInfo);
-
-		dispatcherUrl = jGridServicePanel.getDispatcherUrl();
-		DispatcherClient dispatcherClient = null;
-		GridEndpointReferenceType gridEpr = null;
-		try {
-			dispatcherClient = new DispatcherClient(dispatcherUrl);
-			gridEpr = dispatcherClient.submit(serviceParameterList, url,
-					((AbstractGridAnalysis) selectedGridAnalysis)
-							.getBisonReturnType());
-		} catch (MalformedURIException e) {
-			e.printStackTrace();
-			publishAnalysisAbortEvent(new AnalysisAbortEvent(invokeEvent));
-			return;
-		} catch (RemoteException e) {
-			e.printStackTrace();
-			publishAnalysisAbortEvent(new AnalysisAbortEvent(invokeEvent));
-			return;
-		} finally {
-			pBar.stop();
-		}
-
-		/* generate history for grid analysis */	
-		String history = "Grid service started at: " + Util.formatDateStandard(startDate) + ", milliseconds=" + startTime + NEWLINE;
-		history += "Grid service information:" + NEWLINE;
-		history += TAB + "Index server url: "
-				+ jGridServicePanel.getIndexServerUrl() + NEWLINE;
-		history += TAB + "Dispatcher url: " + dispatcherUrl
-				+ NEWLINE;
-		history += TAB + "Service url: " + url + NEWLINE
-				+ NEWLINE;
-		history += selectedGridAnalysis.createHistory()
-	            + NEWLINE;
-		
-		if (!(dataset instanceof DSMicroarraySet)) {
-			history += selectedGridAnalysis
-					.generateHistoryStringForGeneralDataSet(dataset);
-		} else if (maSetView != null) {
-			history += selectedGridAnalysis.generateHistoryForMaSetView(
-					maSetView);
-		}
-
-		ProjectPanel.getInstance().addPendingNode(gridEpr,
-				selectedGridAnalysis.getLabel() + " (pending)", history, false, selectedGridAnalysis);
-
-		PollingThread pollingThread = new PollingThread(gridEpr,
-				dispatcherClient, invokeEvent, this, selectedGridAnalysis);
-		threadList.add(pollingThread);
-		pollingThread.start();
 	}
 
 	// this method is only invoked form background thread
@@ -914,21 +593,19 @@ public class AnalysisPanel extends CommandBase implements
 			results = selectedAnalysis.execute(dataset);
 		} else if (maSetView != null && dataset != null) {
 			// second case: analysis that takes microarray set 
-			if(selectedAnalysis instanceof AbstractGridAnalysis) {
-				ParamValidationResults validResult = ((AbstractGridAnalysis) selectedAnalysis)
-				.validInputData(maSetView, dataset);
-				if (!validResult.isValid()) {
-					JOptionPane.showMessageDialog(null, validResult.getMessage(),
-							"Invalid Input Data", JOptionPane.ERROR_MESSAGE);
-					results = null;
-					analyze.setEnabled(true);
-					publishAnalysisAbortEvent(new AnalysisAbortEvent(invokeEvent));
-					return;
-				} else if(validResult.getMessage().equals("QUIT")) {
-					publishAnalysisAbortEvent(new AnalysisAbortEvent(invokeEvent));
-					return;
-				}
+			ParamValidationResults validResult = selectedAnalysis.validInputData(maSetView, dataset);
+			if (!validResult.isValid()) {
+				JOptionPane.showMessageDialog(null, validResult.getMessage(),
+						"Invalid Input Data", JOptionPane.ERROR_MESSAGE);
+				results = null;
+				analyze.setEnabled(true);
+				publishAnalysisAbortEvent(new AnalysisAbortEvent(invokeEvent));
+				return;
+			} else if(validResult.getMessage().equals("QUIT")) {
+				publishAnalysisAbortEvent(new AnalysisAbortEvent(invokeEvent));
+				return;
 			}
+
 			results = selectedAnalysis.execute(maSetView);
 		}
 		
@@ -1026,7 +703,7 @@ public class AnalysisPanel extends CommandBase implements
 		ProjectTreeNode node = event.getTreeNode();
 
 		// if not a sub-node under DataSet node nor a pending node
-		if (!(node instanceof DataSetSubNode)  && !pendingNodeSelected()) { 
+		if (!(node instanceof DataSetSubNode)) { 
 			Class<?> currentDataType = dataSet.getClass();
 			if (!pidMap.containsKey(currentDataType) || lastDataType != currentDataType)
 				pidMap.put(currentDataType, null);
@@ -1052,20 +729,17 @@ public class AnalysisPanel extends CommandBase implements
 		
 		clearMenuItems();
 
-		// if not a pending node is selected
-		if (!pendingNodeSelected()) {
-			if (!pidMap.containsKey(currentDataType) || lastDataType != currentDataType)
-				pidMap.put(currentDataType, null);
-			if (currentDataType.equals(CSProteinStructure.class)) {
-				getAvailableAnalyses(ProteinStructureAnalysis.class);
-			} else if (currentDataType.equals(CSSequenceSet.class)) {
-				getAvailableAnalyses(ProteinSequenceAnalysis.class);
-			} else {
-				getAvailableAnalyses(ClusteringAnalysis.class);
-			}
-			updateMenuItems();
-			lastDataType = currentDataType;
+		if (!pidMap.containsKey(currentDataType) || lastDataType != currentDataType)
+			pidMap.put(currentDataType, null);
+		if (currentDataType.equals(CSProteinStructure.class)) {
+			getAvailableAnalyses(ProteinStructureAnalysis.class);
+		} else if (currentDataType.equals(CSSequenceSet.class)) {
+			getAvailableAnalyses(ProteinSequenceAnalysis.class);
+		} else {
+			getAvailableAnalyses(ClusteringAnalysis.class);
 		}
+		updateMenuItems();
+		lastDataType = currentDataType;
 	}
 
 	/**

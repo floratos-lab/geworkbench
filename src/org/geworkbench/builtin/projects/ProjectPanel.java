@@ -12,12 +12,9 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -44,11 +41,8 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.geworkbench.analysis.AbstractGridAnalysis;
-import org.geworkbench.bison.datastructure.biocollections.CSAncillaryDataSet;
 import org.geworkbench.bison.datastructure.biocollections.DSAncillaryDataSet;
 import org.geworkbench.bison.datastructure.biocollections.DSDataSet;
 import org.geworkbench.bison.datastructure.biocollections.microarrays.CSMicroarraySet;
@@ -72,7 +66,6 @@ import org.geworkbench.engine.config.UILauncher;
 import org.geworkbench.engine.config.VisualPlugin;
 import org.geworkbench.engine.config.rules.GeawConfigObject;
 import org.geworkbench.engine.management.Asynchronous;
-import org.geworkbench.engine.management.ComponentRegistry;
 import org.geworkbench.engine.management.Publish;
 import org.geworkbench.engine.management.Subscribe;
 import org.geworkbench.engine.preferences.GlobalPreferences;
@@ -82,10 +75,7 @@ import org.geworkbench.events.CaArrayQueryEvent;
 import org.geworkbench.events.CaArrayRequestEvent;
 import org.geworkbench.events.HistoryEvent;
 import org.geworkbench.events.ImageSnapshotEvent;
-import org.geworkbench.events.PendingNodeCancelledEvent;
-import org.geworkbench.events.PendingNodeLoadedFromWorkspaceEvent;
 import org.geworkbench.events.ProjectEvent;
-import org.geworkbench.events.ProjectNodePostCompletedEvent;
 import org.geworkbench.events.ProjectNodeRemovedEvent;
 import org.geworkbench.events.ProjectNodeRenamedEvent;
 import org.geworkbench.util.DataTypeUtils;
@@ -93,7 +83,6 @@ import org.geworkbench.util.FilePathnameUtils;
 import org.geworkbench.util.ProgressDialog;
 import org.geworkbench.util.ProgressItem;
 import org.geworkbench.util.Util;
-import org.ginkgo.labs.ws.GridEndpointReferenceType;
 
 /**
  * 
@@ -118,8 +107,6 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 	final private LoadDataDialog loadData = new LoadDataDialog();
 
 	final private ProjectSelection selection = new ProjectSelection();
-
-	final private HashMap<GridEndpointReferenceType, PendingTreeNode> eprPendingNodeMap = new HashMap<GridEndpointReferenceType, PendingTreeNode>();
 
 	final private JPopupMenu dataSetMenu = new JPopupMenu();
 
@@ -283,61 +270,15 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 		}
 	}
 
-	private void restorePendingNode(
-			PendingTreeNode.PendingNode dataset,
-			final Map<GridEndpointReferenceType, AbstractGridAnalysis> pendingGridEprs) {
-		String history = dataset.getDescription();
-		GridEndpointReferenceType pendingGridEpr = dataset.gridEpr;
-		String analysisClassName = dataset.analysisClassName;
-		/*
-		 * We store class name instead of the actual AbstractGridAnalysis
-		 * instance because the instance, e.g. AracnceAnalysis, cannot be
-		 * serialized without major change of many classes in spite of that fact
-		 * it is marked as Serializable.
-		 */
-		AbstractGridAnalysis analysis = null;
-		try {
-			List<Object> list = ComponentRegistry.getRegistry()
-					.getComponentsList();
-			boolean found = false;
-			for (Object obj : list) {
-				if (obj.getClass().getName().startsWith(analysisClassName)) {
-					analysis = (AbstractGridAnalysis) obj;
-					found = true;
-					break;
-				}
-			}
-			if (!found)
-				throw new Exception("class of this component not loaded: "
-						+ analysisClassName);
-			addPendingNode(pendingGridEpr, dataset.getLabel(), history, true,
-					analysis);
-			pendingGridEprs.put(pendingGridEpr, analysis);
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	void populateFromSaveTree(SaveTree saveTree) {
 		java.util.List<DataSetSaveNode> dataSetNodes = saveTree.rootNode
 				.getChildren();
 		ProjectTreeNode selectedNode = null;
-		Map<GridEndpointReferenceType, AbstractGridAnalysis> pendingGridEprs = new HashMap<GridEndpointReferenceType, AbstractGridAnalysis>();
 		for (DataSetSaveNode dataNode : dataSetNodes) {
 			setComponents(dataNode);
 			DSDataSet<? extends DSBioObject> dataSet = dataNode.getDataSet();
 			dataSet.setExperimentInformation(dataNode.getDescription());
-			/* pending node */
-			if (dataSet instanceof PendingTreeNode.PendingNode) {
-				restorePendingNode((PendingTreeNode.PendingNode) dataSet,
-						pendingGridEprs);
-			} else { /* real node */
-				addDataSetNode(dataSet);
-			}
+			addDataSetNode(dataSet);
 			if (dataSet == saveTree.getSelected()) {
 				selectedNode = selection.getSelectedNode();
 			}
@@ -346,35 +287,24 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 			for (DataSetSaveNode ancNode : ancSets) {
 				setComponents(ancNode);
 
-				/* pending node */
-				if (ancNode.getDataSet() instanceof PendingTreeNode.PendingNode) {
-					restorePendingNode(
-							(PendingTreeNode.PendingNode) ancNode.getDataSet(),
-							pendingGridEprs);
+				DSAncillaryDataSet<? extends DSBioObject> ancSet = null;
+
+				if (ancNode.getDataSet() instanceof ImageData) {
+					ancSet = (ImageData) ancNode.getDataSet();
 				} else {
-					DSAncillaryDataSet<? extends DSBioObject> ancSet = null;
-
-					if (ancNode.getDataSet() instanceof ImageData) {
-						ancSet = (ImageData) ancNode.getDataSet();
-					} else {
-						ancSet = (DSAncillaryDataSet<? extends DSBioObject>) ancNode
-								.getDataSet();
-					}
-
-					ancSet.setExperimentInformation(ancNode.getDescription());
-					addDataSetSubNode(ancSet);
-					if (ancSet == saveTree.getSelected()) {
-						selectedNode = selection.getSelectedNode();
-					}
-					selection.setNodeSelection((ProjectTreeNode) selection
-							.getSelectedDataSetSubNode().getParent());
+					ancSet = (DSAncillaryDataSet<? extends DSBioObject>) ancNode.getDataSet();
 				}
+
+				ancSet.setExperimentInformation(ancNode.getDescription());
+				addDataSetSubNode(ancSet);
+				if (ancSet == saveTree.getSelected()) {
+					selectedNode = selection.getSelectedNode();
+				}
+				selection.setNodeSelection((ProjectTreeNode) selection.getSelectedDataSetSubNode().getParent());
 			}
 			selection.setNodeSelection((ProjectTreeNode) selection
 					.getSelectedDataSetNode().getParent());
 		}
-		publishPendingNodeLoadedFromWorkspaceEvent(new PendingNodeLoadedFromWorkspaceEvent(
-				pendingGridEprs));
 		// Set final selection
 		if (selectedNode != null) {
 			projectTree.scrollPathToVisible(new TreePath(selectedNode));
@@ -481,58 +411,6 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 	@Publish
 	public HistoryEvent publishHistoryEvent(HistoryEvent event) {
 		return event;
-	}
-
-	/**
-	 * Inserts a new pending node in the project tree. The node is a child of
-	 * the currently selected project
-	 * 
-	 * @param selectedGridAnalysis
-	 * 
-	 * @param _dataSet
-	 */
-	public void addPendingNode(GridEndpointReferenceType gridEpr, String label,
-			String history, boolean startNewThread,
-			AbstractGridAnalysis selectedGridAnalysis) {
-		// get the parent node for this node
-		ProjectTreeNode pNode = selection.getSelectedNode();
-		if (pNode == null) {
-			// should never happen
-			log.error("parent node of the pending node to be added is null");
-			return;
-		}
-
-		/*
-		 * Inserts the new node and sets the menuNode and other variables to
-		 * point to it.
-		 */
-		String analysisClassName = selectedGridAnalysis.getClass().getName();
-		int i = analysisClassName.indexOf("$$");
-		if (i > 0) { // enhanced by cglib
-			analysisClassName = analysisClassName.substring(0, i);
-		}
-
-		PendingTreeNode node = new PendingTreeNode(label, history, gridEpr,
-				analysisClassName);
-		projectTreeModel.insertNodeInto(node, pNode, pNode.getChildCount());
-		// Make sure the user can see the lovely new node.
-		projectTree.scrollPathToVisible(new TreePath(node));
-		projectTree.setSelectionPath(new TreePath(node.getPath()));
-		selection.setNodeSelection(node);
-		eprPendingNodeMap.put(gridEpr, node);
-	}
-
-	private void removeCanceledNode(GridEndpointReferenceType gridEpr) {
-		PendingTreeNode node = eprPendingNodeMap.get(gridEpr);
-		if (node != null) {
-			ProjectTreeNode parent = (ProjectTreeNode) node.getParent();
-			projectTreeModel.removeNodeFromParent(node);
-			// node.setUserObject("No Results");
-			// now nothing is selected, which is annoying, let's select it's
-			// parent
-			projectTree.setSelectionPath(new TreePath(parent.getPath()));
-			selection.setNodeSelection(parent);
-		}
 	}
 
 	/**
@@ -753,8 +631,6 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 				if (ds instanceof CSTTestResultSet)
 					jSaveMenuItem.setEnabled(true);
 				dataSetMenu.show(projectTree, e.getX(), e.getY());
-			} else if (mNode instanceof PendingTreeNode) {
-				pendingMenu.show(projectTree, e.getX(), e.getY());
 			}
 		} else {
 			setSelection();
@@ -814,101 +690,6 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 				}		
 			});
 		}
-	}
-
-	public void processNodeCompleted(GridEndpointReferenceType gridEpr,
-			DSAncillaryDataSet<? extends DSBioObject> ancillaryDataSet) {
-		if (ancillaryDataSet == null) {
-			// no result from grid server? let's delete this node!
-			removeCanceledNode(gridEpr);
-			return;
-		}
-
-		PendingTreeNode node = eprPendingNodeMap.get(gridEpr);
-		if (node == null) {
-			log.debug("pending node is null"); // should never happen
-			return;
-		}
-
-		String history = node.getDSDataSet().getDescription();
-
-		try {
-			Date endDate = new Date();
-			long endTime = endDate.getTime();
-			history += "\nGrid service finished at: "
-					+ Util.formatDateStandard(endDate) + "\n";
-			String firstLine = history.split("\n")[0];
-			String startTime = firstLine.split("=")[1].trim();
-			long elapsedTime = endTime - (new Long(startTime));
-			history += "\nTotal elapsed time: "
-					+ DurationFormatUtils.formatDurationHMS(elapsedTime);
-		} catch (NumberFormatException ne) {
-			history += "\nError processing elapsed time: " + ne.getMessage();
-		} catch (Exception e) {
-			history += "\nError processing elapsed tim: " + e.getMessage();
-			log.error("Error processing elapsed time: " + e.getMessage());
-		}
-
-		boolean pendingNodeFocused = false;
-
-		TreePath pathNow = projectTree.getSelectionPath();
-		Object lastSelected = projectTree.getLastSelectedPathComponent();
-		if (lastSelected instanceof PendingTreeNode) {
-			if (((PendingTreeNode) lastSelected).getGridEpr() == gridEpr)
-				pendingNodeFocused = true;
-		}
-		ProjectTreeNode parent = (ProjectTreeNode) node.getParent();
-		int index = parent.getIndex(node);
-		projectTreeModel.removeNodeFromParent(node);
-
-		if (!(parent instanceof DataSetNode)) {
-			log.error("parent of the pending node is null"); // should never
-																// happen
-		}
-
-		String uniqueName = getUniqueSubnodeName(parent, ancillaryDataSet.getLabel());
-		ancillaryDataSet.setLabel(uniqueName);
-
-		@SuppressWarnings("rawtypes")
-		DSDataSet dataset = ((DataSetNode) parent).getDataset();
-		((CSAncillaryDataSet<? extends DSBioObject>) ancillaryDataSet)
-				.setParent(dataset);
-		DataSetSubNode newNode = new DataSetSubNode(ancillaryDataSet);
-		projectTreeModel.insertNodeInto(newNode, parent, index);
-		eprPendingNodeMap.remove(gridEpr);
-
-		HistoryPanel.addToHistory(ancillaryDataSet, history);
-
-		// Make sure the user can see the lovely new node.
-		projectTree.scrollPathToVisible(new TreePath(newNode));
-		projectTree.setSelectionPath(new TreePath(newNode.getPath()));
-		projectTree.setSelectionPath(pathNow);
-		// If the pending node is focused,
-		// we assume the user is interested in this result.
-		// we visually set the focus to the new node,
-		// and select the node so user can see the result)
-		if (pendingNodeFocused) {
-			projectTree.setSelectionPath(new TreePath(newNode.getPath()));
-			selection.setNodeSelection(newNode);
-		}
-		// PS: this post processing event has to follow the node
-		// selection. otherwise it might affect wrong node.
-		// ex: significance result set will add a significant markers in
-		// the panel for wrong node.
-		publishPostProcessingEvent(new ProjectNodePostCompletedEvent(
-				ancillaryDataSet.getDataSetName(), gridEpr, ancillaryDataSet,
-				parent));
-	}
-
-	private String getUniqueSubnodeName(ProjectTreeNode parent, String originalName){
-		Set<String> subnodeNames = new HashSet<String>();
-		for(int i = 0; i < parent.getChildCount(); i++){
-			TreeNode subnode = parent.getChildAt(i);
-			if (subnode instanceof DataSetSubNode){
-				subnodeNames.add(((DataSetSubNode)subnode)._aDataSet.getLabel());
-			}
-		}
-		return Util.getUniqueName(originalName, subnodeNames);
 	}
 
 	private void openFile() {
@@ -1131,20 +912,8 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 					if (childNode instanceof DataSetSubNode)
 						publishNodeRemovedEvent(new ProjectNodeRemovedEvent(
 								((DataSetSubNode) (childNode))._aDataSet));
-					if (childNode instanceof PendingTreeNode) {
-
-						publishPendingNodeCancelledEvent(new PendingNodeCancelledEvent(
-								((PendingTreeNode) childNode).getGridEpr()));
-					}
-
 				}
 			}
-		}
-
-		// if it's a pending node, we fire a PendingNodeCancelledEvent.
-		if (node instanceof PendingTreeNode) {
-			publishPendingNodeCancelledEvent(new PendingNodeCancelledEvent(
-					((PendingTreeNode) node).getGridEpr()));
 		}
 
 		if (node instanceof DataSetSubNode)
@@ -1153,12 +922,6 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 
 		projectTreeModel.removeNodeFromParent(node);
 
-	}
-
-	@Publish
-	public PendingNodeCancelledEvent publishPendingNodeCancelledEvent(
-			PendingNodeCancelledEvent event) {
-		return event;
 	}
 
 	private void renameDataset() {
@@ -1764,17 +1527,6 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 							+ ws.getWorkspacePath() + "]");
 	}
 
-	/**
-	 * 
-	 * @param pendingEvent
-	 * @return
-	 */
-	@Publish
-	public PendingNodeLoadedFromWorkspaceEvent publishPendingNodeLoadedFromWorkspaceEvent(
-			PendingNodeLoadedFromWorkspaceEvent event) {
-		return event;
-	}
-
 	private void newWorkspace_actionPerformed(ActionEvent e) {
 		if (RWspHandler.wspId > 0)
 			RWspHandler.saveLocalwsp(false);
@@ -1790,12 +1542,6 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 
 	public DSDataSet<? extends DSBioObject> getDataSet() {
 		return selection.getDataSet();
-	}
-
-	@Publish
-	public ProjectNodePostCompletedEvent publishPostProcessingEvent(
-			ProjectNodePostCompletedEvent event) {
-		return event;
 	}
 
 	@Publish

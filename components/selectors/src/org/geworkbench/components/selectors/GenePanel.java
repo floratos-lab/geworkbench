@@ -26,18 +26,12 @@ import javax.swing.tree.TreePath;
 import org.geworkbench.bison.annotation.CSAnnotationContextManager;
 import org.geworkbench.bison.annotation.DSAnnotationContext;
 import org.geworkbench.bison.annotation.DSAnnotationContextManager;
-import org.geworkbench.bison.datastructure.biocollections.DSAncillaryDataSet;
 import org.geworkbench.bison.datastructure.biocollections.DSDataSet;
-import org.geworkbench.bison.datastructure.bioobjects.microarray.DSMasterRegulatorTableResultSet;
 import org.geworkbench.bison.datastructure.biocollections.microarrays.DSMicroarraySet;
 import org.geworkbench.bison.datastructure.biocollections.sequences.DSSequenceSet;
-import org.geworkbench.bison.datastructure.bioobjects.DSBioObject;
 import org.geworkbench.bison.datastructure.bioobjects.markers.DSGeneMarker;
-import org.geworkbench.bison.datastructure.bioobjects.microarray.DSSignificanceResultSet;
-import org.geworkbench.bison.datastructure.complex.panels.CSAnnotPanel;
 import org.geworkbench.bison.datastructure.complex.panels.CSItemList;
 import org.geworkbench.bison.datastructure.complex.panels.CSPanel;
-import org.geworkbench.bison.datastructure.complex.panels.DSAnnotatedPanel;
 import org.geworkbench.bison.datastructure.complex.panels.DSItemList;
 import org.geworkbench.bison.datastructure.complex.panels.DSPanel;
 import org.geworkbench.engine.management.Overflow;
@@ -567,85 +561,6 @@ public class GenePanel extends SelectorPanel<DSGeneMarker> {
 
 	protected void publishSingleSelectionEvent(DSGeneMarker item) {
 		publishGeneSelectorEvent(new GeneSelectorEvent(item));
-	}
-
-	@SuppressWarnings("unchecked")
-	@Subscribe
-	public void receive(
-			org.geworkbench.events.ProjectNodePostCompletedEvent pnce,
-			Object source) {
-		DSAncillaryDataSet<? extends DSBioObject> result = pnce.getAncillaryDataSet();
-
-		if ( result instanceof DSSignificanceResultSet ) {
-			// if it's a significance result set, we put all markers to a newly
-			// created Annotated Panel.
-			DSAnnotatedPanel<DSGeneMarker, Float> panelSignificant = new CSAnnotPanel<DSGeneMarker, Float>(
-					"Significant Genes");
-			DSSignificanceResultSet<DSGeneMarker> temp = (DSSignificanceResultSet<DSGeneMarker>) result;
-			DSPanel<DSGeneMarker> temp2 = temp.getSignificantMarkers();
-			for (DSGeneMarker named : temp2) {
-				panelSignificant.add(named);
-			}
-
-			// then, put that newly created Annotated Panel to GenePanel.
-
-			/*
-			 * in order to change the context without changing the focused node,
-			 * we do following: 1. save current context, 2. change to the one
-			 * need modify, 3. change back to current context.
-			 */
-
-			// 1. save current context
-			DSAnnotationContext<DSGeneMarker> currentContext = context;
-			// 2. change to the one need modify
-			dataSetChanged(pnce.getAncillaryDataSet().getParentDataSet());
-
-			publishSubpanelChangedEvent(new SubpanelChangedEvent<DSGeneMarker>(
-					DSGeneMarker.class, panelSignificant,
-					SubpanelChangedEvent.NEW));
-			/*
-			 * our geWorkbench will not publish event to ourself (ex: in this
-			 * case, we want it to be received in our parent - selectorPanel) so
-			 * we still need to call the receive() manually
-			 */
-			this.receive(new SubpanelChangedEvent<DSGeneMarker>(DSGeneMarker.class,
-					panelSignificant, SubpanelChangedEvent.NEW), this);
-
-			// 3. change it back
-			context = currentContext;
-
-		}
-		else if ( result instanceof DSMasterRegulatorTableResultSet) {
-			 
-			DSMasterRegulatorTableResultSet mraResultSet = (DSMasterRegulatorTableResultSet)result;
-			DSPanel<DSGeneMarker> selectedMarkers = new CSPanel<DSGeneMarker>(
-					"MRA Genes", "MRA");	
-	 
-			// 1. save current context
-			DSAnnotationContext<DSGeneMarker> currentContext = context;
-			// 2. change to the one need modify
-			dataSetChanged(pnce.getAncillaryDataSet().getParentDataSet());
-
-		    Object[][] data = mraResultSet.getData();			
-			if (data != null)
-			{
-				DSItemList<DSGeneMarker> markers = maSet.getMarkers();
- 				for (int i=0; i< data.length; i++)
-					selectedMarkers.add(markers.get(data[i][0].toString()));
-			}
-			
-			
-			publishSubpanelChangedEvent(new SubpanelChangedEvent<DSGeneMarker>(
-					DSGeneMarker.class, selectedMarkers,
-					SubpanelChangedEvent.NEW));
-			 
-			this.receive(new SubpanelChangedEvent<DSGeneMarker>(DSGeneMarker.class,
-					selectedMarkers, SubpanelChangedEvent.NEW), this);
-
-			// 3. change it back
-			context = currentContext;
-
-		}
 	}
 
 	@Override

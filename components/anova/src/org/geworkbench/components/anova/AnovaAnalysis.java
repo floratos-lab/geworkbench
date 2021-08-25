@@ -1,10 +1,7 @@
 package org.geworkbench.components.anova;
 
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -13,7 +10,7 @@ import javax.swing.SwingUtilities;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.geworkbench.analysis.AbstractGridAnalysis;
+import org.geworkbench.analysis.AbstractAnalysis;
 import org.geworkbench.bison.annotation.CSAnnotationContextManager;
 import org.geworkbench.bison.annotation.DSAnnotationContext;
 import org.geworkbench.bison.annotation.DSAnnotationContextManager;
@@ -21,9 +18,8 @@ import org.geworkbench.bison.datastructure.biocollections.DSDataSet;
 import org.geworkbench.bison.datastructure.biocollections.microarrays.DSMicroarraySet;
 import org.geworkbench.bison.datastructure.biocollections.views.DSMicroarraySetView;
 import org.geworkbench.bison.datastructure.bioobjects.markers.DSGeneMarker;
-import org.geworkbench.bison.datastructure.bioobjects.microarray.CSAnovaResultSet; 
+import org.geworkbench.bison.datastructure.bioobjects.microarray.CSAnovaResultSet;
 import org.geworkbench.bison.datastructure.bioobjects.microarray.DSMicroarray;
- 
 import org.geworkbench.bison.datastructure.complex.panels.CSAnnotPanel;
 import org.geworkbench.bison.datastructure.complex.panels.DSAnnotatedPanel;
 import org.geworkbench.bison.datastructure.complex.panels.DSItemList;
@@ -32,24 +28,22 @@ import org.geworkbench.bison.model.analysis.AlgorithmExecutionResults;
 import org.geworkbench.bison.model.analysis.ClusteringAnalysis;
 import org.geworkbench.bison.model.analysis.ParamValidationResults;
 import org.geworkbench.builtin.projects.history.HistoryPanel;
+import org.geworkbench.components.anova.data.AnovaInput;
+import org.geworkbench.components.anova.data.AnovaOutput;
 import org.geworkbench.components.anova.gui.AnovaAnalysisPanel;
 import org.geworkbench.engine.management.Publish;
 import org.geworkbench.events.SubpanelChangedEvent;
-import org.geworkbench.util.ProgressBar; 
-
-import org.geworkbench.components.anova.data.AnovaInput;
-import org.geworkbench.components.anova.data.AnovaOutput;
+import org.geworkbench.util.ProgressBar;
 
 /**
  * @author yc2480
  * @version $Id: AnovaAnalysis.java,v 1.26 2009-09-10 16:40:26 chiangy Exp $
  */
-public class AnovaAnalysis extends AbstractGridAnalysis implements
+public class AnovaAnalysis extends AbstractAnalysis implements
 		ClusteringAnalysis {
 	private static final long serialVersionUID = 6660785761134949795L;
 
 	private Log log = LogFactory.getLog(AnovaAnalysis.class);
-	private final String analysisName = "Anova";
 
 	/*
 	 * store text output used in dataset history. Will be refreshed each time
@@ -331,67 +325,6 @@ public class AnovaAnalysis extends AbstractGridAnalysis implements
 		}
 
 		return histStr.toString();
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#getAnalysisName()
-	 */
-	@Override
-	public String getAnalysisName() {
-		return analysisName;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#getBisonParameters()
-	 */
-	@Override
-	protected Map<Serializable, Serializable> getBisonParameters() {
-		Map<Serializable, Serializable> parameterMap = new HashMap<Serializable, Serializable>();
-		// FIXME caGrdi service code need to be updated accordingly
-		parameterMap.put("permutationsNumber",
-				anovaAnalysisPanel.permutationsNumber);
-		parameterMap.put("falseSignificantGenesLimit",
-				anovaAnalysisPanel.falseSignificantGenesLimit);
-		parameterMap.put("pValueThreshold", anovaAnalysisPanel.pValueThreshold);
-		parameterMap.put("falseDiscoveryRateControl",
-				anovaAnalysisPanel.falseDiscoveryRateControl.toString());
-		parameterMap.put("pValueEstimation",
-				anovaAnalysisPanel.pValueEstimation.toString());
-		return parameterMap;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#getBisonReturnType()
-	 */
-	@Override
-	public Class<?> getBisonReturnType() {
-		return CSAnovaResultSet.class;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#useMicroarraySetView()
-	 */
-	@Override
-	protected boolean useMicroarraySetView() {
-		return true;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#useOtherDataSet()
-	 */
-	@Override
-	protected boolean useOtherDataSet() {
-		return false;
 	}
 
 	/*

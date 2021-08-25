@@ -7,12 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -20,15 +18,11 @@ import javax.swing.DefaultComboBoxModel;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.geworkbench.analysis.AbstractGridAnalysis;
+import org.geworkbench.analysis.AbstractAnalysis;
 import org.geworkbench.bison.datastructure.biocollections.DSDataSet;
-import org.geworkbench.bison.datastructure.biocollections.views.DSMicroarraySetView;
-import org.geworkbench.bison.datastructure.bioobjects.markers.DSGeneMarker;
-import org.geworkbench.bison.datastructure.bioobjects.microarray.DSMicroarray;
 import org.geworkbench.bison.datastructure.bioobjects.structure.DSProteinStructure;
 import org.geworkbench.bison.datastructure.bioobjects.structure.MarkUsResultDataSet;
 import org.geworkbench.bison.model.analysis.AlgorithmExecutionResults;
-import org.geworkbench.bison.model.analysis.ParamValidationResults;
 import org.geworkbench.bison.model.analysis.ProteinStructureAnalysis;
 import org.geworkbench.engine.management.Subscribe;
 import org.geworkbench.events.ProjectEvent;
@@ -42,13 +36,11 @@ import org.geworkbench.util.Util;
  * @author zji
  * @version $Id: MarkUsAnalysis.java,v 1.7 2009-09-10 16:40:26 chiangy Exp $
  */
-public class MarkUsAnalysis extends AbstractGridAnalysis implements ProteinStructureAnalysis 
+public class MarkUsAnalysis extends AbstractAnalysis implements ProteinStructureAnalysis 
 {
 	private static final long serialVersionUID = -4702468130439199874L;
 	Log log = LogFactory.getLog(MarkUsAnalysis.class);
 
-	private final String analysisName = "MarkUs";
-	
     private MarkUsConfigPanel mcp;
 	private static final String strurl = "https://bhapp.c2b2.columbia.edu/MarkUs/cgi-bin/submit.pl";
 	private static final String browseUrl = "https://bhapp.c2b2.columbia.edu/MarkUs/cgi-bin/browse.pl?pdb_id=";
@@ -189,93 +181,6 @@ public class MarkUsAnalysis extends AbstractGridAnalysis implements ProteinStruc
 		return new AlgorithmExecutionResults(true, "No errors", resultset);
 
     }
-    
-    @Override
-	public String getAnalysisName() {
-    	return analysisName;
-	}
-
-	@Override
-	protected Map<Serializable, Serializable> getBisonParameters() {
-		log.debug("Reading bison parameters");
-
-		Map<Serializable, Serializable> bisonParameters = new HashMap<Serializable, Serializable>();
-		MarkUsConfigPanel paramPanel = (MarkUsConfigPanel) this.aspp;
-
-		// main - all booleans
-		bisonParameters.put("skan", paramPanel.getskanValue());
-		bisonParameters.put("dali", paramPanel.getdaliValue());
-		bisonParameters.put("screen", paramPanel.getscreenValue());
-		bisonParameters.put("delphi", paramPanel.getdelphiValue());
-		bisonParameters.put("psi_blast", paramPanel.getpsiblastValue());
-		bisonParameters.put("ips", paramPanel.getipsValue());
-		bisonParameters.put("consurf", paramPanel.getconsurfValue());
-		bisonParameters.put("consurf3", paramPanel.getconsurf3Value());
-		bisonParameters.put("consurf4", paramPanel.getconsurf4Value());
-		// string
-		bisonParameters.put("chain", paramPanel.getChain());
-		bisonParameters.put("key", paramPanel.getkeyValue());
-		bisonParameters.put("email", paramPanel.getEmail(true));
-		bisonParameters.put("title", paramPanel.getTitle(true));
-
-		// delphi
-		bisonParameters.put("grid_size", paramPanel.getgridsizeValue()); // int
-		bisonParameters.put("box_fill", paramPanel.getboxfillValue()); // int
-		bisonParameters.put("steps", paramPanel.getstepsValue()); // int
-		bisonParameters.put("sc", paramPanel.getscValue()); // double
-		bisonParameters.put("radius", paramPanel.getradiusValue()); // double
-		bisonParameters.put("ibc", paramPanel.getibcValue()); // int
-		bisonParameters.put("nli", paramPanel.getnliValue()); // int
-		bisonParameters.put("li", paramPanel.getliValue()); // int
-		bisonParameters.put("idc", paramPanel.getidcValue()); // int
-		bisonParameters.put("edc", paramPanel.getedcValue()); // int
-
-		// analysis 3
-		if(paramPanel.getconsurf3Value()) {
-			bisonParameters.put("csftitle3", paramPanel.getcsftitle3Value()); // String
-			bisonParameters.put("eval3", paramPanel.geteval3Value()); // double
-			bisonParameters.put("iter3", paramPanel.getiter3Value()); // int
-			bisonParameters.put("filter3", paramPanel.getfilter3Value()); // int
-			bisonParameters.put("msa3", paramPanel.getmsa3Value()); // String
-		}
-
-		// analysis 4
-		if(paramPanel.getconsurf4Value()) {
-			bisonParameters.put("csftitle4", paramPanel.getcsftitle4Value()); // String
-			bisonParameters.put("eval4", paramPanel.geteval4Value()); // double
-			bisonParameters.put("iter4", paramPanel.getiter4Value()); // int
-			bisonParameters.put("filter4", paramPanel.getfilter4Value()); // int
-			bisonParameters.put("msa4", paramPanel.getmsa4Value()); // String
-		}
-		return bisonParameters;	}
-
-	@Override
-	public Class<?> getBisonReturnType() {
-		return String.class;
-	}
-
-	@Override
-	protected boolean useMicroarraySetView() {
-		return false;
-	}
-
-	@Override
-	protected boolean useOtherDataSet() {
-		return true;
-	}
-
-	@Override
-	public ParamValidationResults validInputData(
-			DSMicroarraySetView<DSGeneMarker, DSMicroarray> maSetView,
-			DSDataSet<?> refMASet) {
-		// TODO Auto-generated method stub
-		return new ParamValidationResults(true, null);
-	}
-	
-	@Override
-	public boolean isAuthorizationRequired() {
-		return false;
-	}
 
 	@Subscribe
     public void receive(ProjectEvent e, Object source) {

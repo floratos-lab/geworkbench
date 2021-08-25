@@ -13,8 +13,6 @@ import javax.swing.MenuElement;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geworkbench.analysis.AbstractAnalysis;
-import org.geworkbench.builtin.projects.PendingTreeNode;
-import org.geworkbench.builtin.projects.ProjectPanel;
 import org.geworkbench.engine.config.MenuListener;
 import org.geworkbench.engine.config.PluginDescriptor;
 import org.geworkbench.engine.config.VisualPlugin;
@@ -127,10 +125,6 @@ public abstract class CommandBase implements MenuListener, VisualPlugin {
     		}
     	}
     }
-
-	protected boolean pendingNodeSelected(){
-		return ProjectPanel.getInstance().getSelection().getSelectedNode() instanceof PendingTreeNode;
-	}
 
 	public ActionListener getActionListener(String var) {
 		return listeners.get(var);

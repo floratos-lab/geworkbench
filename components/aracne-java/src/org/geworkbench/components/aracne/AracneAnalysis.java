@@ -1,10 +1,7 @@
 package org.geworkbench.components.aracne;
 
-import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -13,7 +10,7 @@ import javax.swing.SwingUtilities;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.geworkbench.analysis.AbstractGridAnalysis;
+import org.geworkbench.analysis.AbstractAnalysis;
 import org.geworkbench.bison.datastructure.biocollections.AdjacencyMatrix;
 import org.geworkbench.bison.datastructure.biocollections.AdjacencyMatrix.NodeType;
 import org.geworkbench.bison.datastructure.biocollections.AdjacencyMatrixDataSet;
@@ -38,12 +35,10 @@ import org.geworkbench.events.GeneSelectorEvent;
 import org.geworkbench.events.ProjectNodeAddedEvent;
 import org.geworkbench.util.ProgressBar;
 
-import edu.columbia.c2b2.aracne.Parameter;
-
 /**
  * @author Matt Hall
  */
-public class AracneAnalysis extends AbstractGridAnalysis implements
+public class AracneAnalysis extends AbstractAnalysis implements
 		ClusteringAnalysis {
 
 	private static final long serialVersionUID = -4501531893816533232L;
@@ -52,8 +47,6 @@ public class AracneAnalysis extends AbstractGridAnalysis implements
 
 	static Log log = LogFactory.getLog(AracneAnalysis.class);
 
-	 
-	private final String analysisName = "Aracne";
 	/**
 	 *
 	 */
@@ -378,138 +371,6 @@ public class AracneAnalysis extends AbstractGridAnalysis implements
 	/*
 	 * (non-Javadoc)
 	 *
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#getBisonParameters()
-	 */
-	@Override
-	protected Map<Serializable, Serializable> getBisonParameters() {
-		log.debug("Reading bison parameters");
-
-		Map<Serializable, Serializable> bisonParameters = new HashMap<Serializable, Serializable>();
-		AracneParamPanel paramPanel = (AracneParamPanel) this.aspp;
-
-		bisonParameters.put("isDPISpecified", paramPanel
-				.isDPIToleranceSpecified());
-		if (paramPanel.isDPIToleranceSpecified()) {
-			float dpiTolerence = paramPanel.getDPITolerance();
-			bisonParameters.put("dpi", dpiTolerence);
-		}
-		bisonParameters.put("isKernelWidthSpecified", paramPanel
-				.isKernelWidthSpecified());
-		if (paramPanel.isKernelWidthSpecified()) {
-			float kernelWidth = paramPanel.getKernelWidth();
-			bisonParameters.put("kernel", kernelWidth);
-		}
-
-		/* TODO allow user to enter many markers or a file of markers */
-		String hubGene = paramPanel.getHubGeneString();
-		bisonParameters.put("isHubListSpecified", paramPanel
-				.isHubListSpecified());
-		if (paramPanel.isHubListSpecified())
-			bisonParameters.put("hub", hubGene);
-		else
-			bisonParameters.put("hub", "");
-
-		ArrayList<String> targetGeneList = paramPanel.getTargetGenes();
-		String targetGene = "";
-		boolean isFirst = true;
-		for (java.util.Iterator<String> iterator = targetGeneList.iterator(); iterator
-				.hasNext();) {
-			if (isFirst)
-				isFirst = false;
-			else
-				targetGene += ",";
-			String gene = (String) iterator.next();
-			targetGene += gene;
-		}		
-		bisonParameters.put("isTargetListSpecified", paramPanel.isTargetListSpecified());
-		bisonParameters.put("target", targetGene);
-		bisonParameters.put("prune", paramPanel.isPrune());
-		bisonParameters.put("isMI", paramPanel.isThresholdMI());
-
-		bisonParameters.put("noCorrection", paramPanel.noCorrection());
-		bisonParameters.put("threshold", paramPanel.getThreshold());
-
-		int bootstrapNumber = paramPanel.getBootstrapNumber();
-		bisonParameters.put("bootstrapNumber", bootstrapNumber);
-		double consensusThreshold = paramPanel.getConsensusThreshold();
-		bisonParameters.put("consensusThreshold", consensusThreshold);
-
-		String algorithm = null;
-    	if (paramPanel.getAlgorithm().equals(Parameter.ALGORITHM.ADAPTIVE_PARTITIONING)){
-    		algorithm = AracneParamPanel.ADAPTIVE_PARTITIONING;
-    	} else if (paramPanel.getAlgorithm().equals(Parameter.ALGORITHM.FIXED_BANDWIDTH)){
-    		algorithm = AracneParamPanel.FIXED_BANDWIDTH;
-    	} else {
-    		log.error("wrong algorithm in parameters");
-    	}
-		bisonParameters.put("algorithm", algorithm);
-
-		String mode = null;
-    	if (paramPanel.getMode().equals(Parameter.MODE.COMPLETE)){
-    		mode = AracneParamPanel.COMPLETE;
-    	} else if (paramPanel.getMode().equals(Parameter.MODE.PREPROCESSING)){
-    		mode = AracneParamPanel.PREPROCESSING;
-    	} else if (paramPanel.getMode().equals(Parameter.MODE.DISCOVERY)){
-    		mode = AracneParamPanel.DISCOVERY;
-    	} else {
-    		log.error("wrong mode in parameters");
-    	}
-		bisonParameters.put("mode", mode);
-
-	    // bug #1997
-		String dataSetName = paramPanel.getMaSetName();
-		String DATASETNAME_ALGORITHM_kernel_file = paramPanel.getKernelFile(dataSetName);
-		String DATASETNAME_ALGORITHM_threshold_file = paramPanel.getThresholdFile(dataSetName);
-
-		bisonParameters.put("kernalFile", DATASETNAME_ALGORITHM_kernel_file);
-		bisonParameters.put("thresholdFile", DATASETNAME_ALGORITHM_threshold_file);
-
-		return bisonParameters;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#getAnalysisName()
-	 */
-	@Override
-	public String getAnalysisName() {
-		return analysisName;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#getBisonReturnType()
-	 */
-	@Override
-	public Class<AracneResult> getBisonReturnType() {
-		return AracneResult.class;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#useMicroarraySetView()
-	 */
-	@Override
-	protected boolean useMicroarraySetView() {
-		return true;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#useOtherDataSet()
-	 */
-	@Override
-	protected boolean useOtherDataSet() {
-		return false;
-	}
-
-	/*
-	 * (non-Javadoc)
-	 *
 	 * @see org.geworkbench.analysis.AbstractGridAnalysis#validInputData(org.geworkbench.bison.datastructure.biocollections.views.DSMicroarraySetView,
 	 *      org.geworkbench.bison.datastructure.biocollections.DSDataSet)
 	 */
@@ -592,22 +453,6 @@ public class AracneAnalysis extends AbstractGridAnalysis implements
 			}
 		} else
 			log.debug("Aracne Received Gene Selector Event: Selection panel sent was null");
-	}
-
-	/**
-	 *
-	 * @param e
-	 * @param source
-	 */
-	@Subscribe
-	public void receive(org.geworkbench.events.ProjectNodePostCompletedEvent e,
-			Object source) {
-		DSDataSet<?> dataSet = e.getAncillaryDataSet();
-		if (dataSet instanceof AdjacencyMatrixDataSet) {
-			AdjacencyMatrixDataSet adjMatrixDataSet = (AdjacencyMatrixDataSet) dataSet;
-			if (adjMatrixDataSet.getMatrix().getConnectionNo() == 0)
-				tellUserToRelaxThresholds();
-		}
 	}
 
 	/**

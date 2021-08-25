@@ -10,10 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Observable;
 
 import javax.swing.JCheckBox;
@@ -21,7 +18,7 @@ import javax.swing.JOptionPane;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.geworkbench.analysis.AbstractGridAnalysis;
+import org.geworkbench.analysis.AbstractAnalysis;
 import org.geworkbench.bison.annotation.CSAnnotationContext;
 import org.geworkbench.bison.annotation.CSAnnotationContextManager;
 import org.geworkbench.bison.annotation.DSAnnotationContext;
@@ -46,7 +43,7 @@ import org.geworkbench.util.ProgressBar;
  * 
  * @author zm2165 
  */
-public class SAMAnalysis extends AbstractGridAnalysis implements
+public class SAMAnalysis extends AbstractAnalysis implements
 		ClusteringAnalysis {
 
  	private static final long serialVersionUID = -1672201775884915447L;
@@ -469,44 +466,6 @@ public class SAMAnalysis extends AbstractGridAnalysis implements
 		return histStr.toString();
 	}
 
-	@Override
-	public String getAnalysisName() {
-		return "Sam";
-	}
-
-	@Override
-	public Class<?> getBisonReturnType() {
-		return SamResultData.class;
-	}	
-
-	@Override
-	protected boolean useMicroarraySetView() {
-		return true;
-	}
-
-	@Override
-	protected boolean useOtherDataSet() {
-		return false;
-	}
-
-	@Override
-	protected Map<Serializable, Serializable> getBisonParameters() {
-		Map<Serializable, Serializable> bisonParameters = new HashMap<Serializable, Serializable>();
-		SAMPanel paramPanel = (SAMPanel) this.getParameterPanel();
-		float deltaIncrement=Float.parseFloat(paramPanel.getDeltaInc());
-		bisonParameters.put("deltaIncrement", deltaIncrement);
-		float deltaMax=Float.parseFloat(paramPanel.getDeltaMax());
-		bisonParameters.put("deltaMax", deltaMax);
-		int m=Integer.parseInt(paramPanel.getPermutation());
-		bisonParameters.put("m", m);
-		boolean unlog=paramPanel.needUnLog();
-		bisonParameters.put("unlog", unlog);
-		
-		bisonParameters.put("cl", groupAssignments);		
-		
-		return bisonParameters;
-	}
-	
 	/* Calling this in validInputData() is sort of hack, not a clean design. */
 	private void createGroupAssignments(int numExps,
 			DSMicroarraySetView<DSGeneMarker, DSMicroarray> view,

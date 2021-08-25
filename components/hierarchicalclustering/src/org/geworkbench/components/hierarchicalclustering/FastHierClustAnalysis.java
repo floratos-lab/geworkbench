@@ -1,9 +1,6 @@
 package org.geworkbench.components.hierarchicalclustering;
 
-import java.io.Serializable;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
@@ -13,7 +10,7 @@ import javax.swing.SwingUtilities;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.geworkbench.analysis.AbstractGridAnalysis;
+import org.geworkbench.analysis.AbstractAnalysis;
 import org.geworkbench.bison.annotation.CSAnnotationContextManager;
 import org.geworkbench.bison.annotation.DSAnnotationContext;
 import org.geworkbench.bison.annotation.DSAnnotationContextManager;
@@ -30,11 +27,11 @@ import org.geworkbench.bison.model.analysis.ParamValidationResults;
 import org.geworkbench.bison.model.clusters.CSHierClusterDataSet;
 import org.geworkbench.bison.model.clusters.HierCluster;
 import org.geworkbench.builtin.projects.history.HistoryPanel;
+import org.geworkbench.components.hierarchicalclustering.computation.DimensionType;
 import org.geworkbench.components.hierarchicalclustering.computation.DistanceType;
 import org.geworkbench.components.hierarchicalclustering.computation.HNode;
 import org.geworkbench.components.hierarchicalclustering.computation.HierarchicalClustering;
 import org.geworkbench.components.hierarchicalclustering.computation.Linkage;
-import org.geworkbench.components.hierarchicalclustering.computation.DimensionType;
 import org.geworkbench.components.hierarchicalclustering.data.HierClusterInput;
 import org.geworkbench.util.ProgressBar;
  
@@ -45,14 +42,12 @@ import org.geworkbench.util.ProgressBar;
  * @version $Id$
  * 
  */
-public class FastHierClustAnalysis extends AbstractGridAnalysis implements
+public class FastHierClustAnalysis extends AbstractAnalysis implements
 		ClusteringAnalysis {
 
 	private static final long serialVersionUID = 4486758109656693283L;
 
 	private static Log log = LogFactory.getLog(FastHierClustAnalysis.class);
-
-	private final String analysisName = "Hierarchical";
 
 	public FastHierClustAnalysis() {
 		setDefaultPanel(new HierClustPanel());
@@ -284,94 +279,7 @@ public class FastHierClustAnalysis extends AbstractGridAnalysis implements
 		return d;
 	}
 	
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#getAnalysisName()
-	 */
-	@Override
-	public String getAnalysisName() {
-		return analysisName;
-	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#getBisonParameters()
-	 */
-	@Override
-	protected Map<Serializable, Serializable> getBisonParameters() {
-
-		String METHOD = "Method";
-		String DIM = "Dimension";
-		String DISTANCE = "Distance";
-		Map<Serializable, Serializable> parameterMap = new HashMap<Serializable, Serializable>();
-
-		int method = ((HierClustPanel) aspp).getMethod();
-		if (method == 0) {
-			parameterMap.put(METHOD, "single");
-		} else if (method == 1) {
-			parameterMap.put(METHOD, "average");
-		} else if (method == 2) {
-			parameterMap.put(METHOD, "complete");
-		} else {
-			throw new RuntimeException("Unsupported method " + method);
-		}
-
-		int dimension = ((HierClustPanel) aspp).getDimension();
-		if (dimension == 0) {
-			parameterMap.put(DIM, "marker");
-		} else if (dimension == 1) {
-			parameterMap.put(DIM, "microarray");
-		} else if (dimension == 2) {
-			parameterMap.put(DIM, "both");
-		} else {
-			throw new RuntimeException("Unsupported dimension " + dimension);
-		}
-
-		int metric = ((HierClustPanel) aspp).getDistanceMetric();
-		if (metric == 0) {
-			parameterMap.put(DISTANCE, "euclidean");
-		} else if (metric == 1) {
-			parameterMap.put(DISTANCE, "pearson");
-		} else if (metric == 2) {
-			parameterMap.put(DISTANCE, "spearman");
-		} else {
-			throw new RuntimeException("Unsupported distance metric " + metric);
-		}
-
-		return parameterMap;
-
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#getBisonReturnType()
-	 */
-	@Override
-	public Class<?> getBisonReturnType() {
-		return CSHierClusterDataSet.class;
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#useMicroarraySetView()
-	 */
-	@Override
-	protected boolean useMicroarraySetView() {
-		return true;
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.geworkbench.analysis.AbstractGridAnalysis#useOtherDataSet()
-	 */
-	@Override
-	protected boolean useOtherDataSet() {
-		return false;
-	}
-	
 	/**
 	 * 
 	 * @param markers 

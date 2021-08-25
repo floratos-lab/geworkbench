@@ -102,14 +102,6 @@ public class ProjectSelection {
 				ProjectPanel.getInstance().publishProjectEvent(
 						new ProjectEvent(selectedDataSetSubNode._aDataSet,
 								selectedDataSetSubNode));
-            } else if (node instanceof PendingTreeNode) {
-                selectedDataSetNode = getParentDataSet(node);
-                AnnotationParser.setCurrentDataSet(selectedDataSetNode.getDataset());
-                GeawConfigObject.getGuiWindow().setVisualizationType(null);
-                selectedDataSetSubNode = null;
-				ProjectPanel.getInstance().publishProjectEvent(
-						new ProjectEvent(selectedDataSetNode.getDataset(),
-								selectedDataSetNode));
             } else { // the case of root node
                 selectedDataSetNode = null;
                 selectedDataSetSubNode = null;

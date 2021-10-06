@@ -115,7 +115,7 @@ For example:
    */
   public void shutdown() {
       // Iterate through all active synch models
-      Collection&lt;SynchModel&gt; models = synchModels.values();
+      Collection<SynchModel> models = synchModels.values();
       for (SynchModel synchModel : models) {
           // Shut down the synch model
           synchModel.shutdown();

@@ -275,8 +275,7 @@ public class WorkspaceHandler {
 				f = new FileOutputStream(filename);
 				s = new ObjectOutputStream(f);
 				SaveTree saveTree = new SaveTree(enclosingProjectPanel,
-						enclosingProjectPanel.getDataSet(), RWspHandler.wspId, RWspHandler.dirty, 
-						RWspHandler.checkoutstr, RWspHandler.lastchange);
+						enclosingProjectPanel.getDataSet());
 				s.writeObject(saveTree);
 				APSerializable aps = AnnotationParser.getSerializable();
 				s.writeObject(aps);
@@ -318,14 +317,9 @@ public class WorkspaceHandler {
 			try {
 				get();
 				enclosingProjectPanel.populateFromSaveTree(saveTree);
-				RWspHandler.wspId = saveTree.getWspId();
-				RWspHandler.dirty = saveTree.getDirty();
-				RWspHandler.checkoutstr = saveTree.getCheckout();
-				RWspHandler.lastchange = saveTree.getLastchange();
 			} catch (ExecutionException e) {
 				// printStackTrace what is from doInBackground
 				e.getCause().printStackTrace();
-				RWspHandler.wspId = 0;
 				JOptionPane.showMessageDialog(null,
 						"Check that the file contains a valid workspace.",
 						"Open Workspace Error", JOptionPane.ERROR_MESSAGE);
@@ -333,10 +327,8 @@ public class WorkspaceHandler {
 				// This should not happen. get() is called only to handle the
 				// exception from doInBackGound
 				e.printStackTrace();
-				RWspHandler.wspId = 0;
 			} catch (Exception e) { // null pinter, no serializable
 				e.printStackTrace();
-				RWspHandler.wspId = 0;
 				JOptionPane.showMessageDialog(null,
 						"Check that the file contains a valid workspace.\n"+e,
 						"Open Workspace Error", JOptionPane.ERROR_MESSAGE);

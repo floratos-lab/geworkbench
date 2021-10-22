@@ -20,19 +20,11 @@ public class SaveTree implements Serializable {
 	private static final long serialVersionUID = 2534917305724421302L;
 
 	private DSDataSet<? extends DSBioObject> selected;
-	private int wspId=0;
-	private boolean dirty = false;
-	private String checkout = null;
-	private String lastchange = null;
 
 	final DataSetSaveNode rootNode;
 	
-	public SaveTree(ProjectPanel panel, DSDataSet<? extends DSBioObject> selected, int rid, boolean d, String co, String lc) {
+	public SaveTree(ProjectPanel panel, DSDataSet<? extends DSBioObject> selected) {
 		this.selected = selected;
-		this.wspId = rid;
-		this.dirty = d;
-		this.checkout = co;
-		this.lastchange = lc;
 
 		selected = panel.getDataSet();
 		rootNode = new DataSetSaveNode();
@@ -81,22 +73,4 @@ public class SaveTree implements Serializable {
 		return selected;
 	}
 
-	public int getWspId(){
-		return wspId;
-	}
-	public boolean getDirty(){
-		return dirty;
-	}
-	public void setDirty(boolean d){
-		dirty= d;
-	}
-	public String getCheckout(){
-		return checkout;
-	}
-	public void setCheckout(String co){
-		checkout = co;
-	}
-	public String getLastchange(){
-		return lastchange;
-	}
 }

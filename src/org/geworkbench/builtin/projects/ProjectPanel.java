@@ -32,8 +32,6 @@ import javax.swing.MenuElement;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
@@ -608,12 +606,6 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 				else
 					this.jExportToTabDelimMenuItem.setVisible(false);
 
-				if ((RWspHandler.wspId > 0 && RWspHandler.dirty == false)
-						|| (RWspHandler.wspId == 0 && mNode == root && mNode
-								.getChildCount() == 0))
-					jUploadWspItem.setEnabled(false);
-				else
-					jUploadWspItem.setEnabled(true);
 			}
 
 			if ((mNode == null) || (mNode == root)) {
@@ -1211,8 +1203,6 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 
 	final private JPopupMenu jRootMenu = new JPopupMenu();
 
-	final private JMenuItem jUploadWspItem = new JMenuItem("Upload to server");
-
 	final private JMenuItem openFileItem = new JMenuItem("Open File(s)");
 
 	final private JMenuItem jOpenRemotePDBItem = new JMenuItem(
@@ -1266,8 +1256,6 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 		jRootMenu.add(openFileItem);
 		jRootMenu.addSeparator();
 		jRootMenu.add(jOpenRemotePDBItem);
-		jRootMenu.addSeparator();
-		jRootMenu.add(jUploadWspItem);
 
 		jExportToTabDelimMenuItem.setVisible(false);
 
@@ -1373,14 +1361,6 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 			}
 		});
 
-		listeners.put("File.Open.Remote Workspace",
-				new java.awt.event.ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						RWspHandler ws = new RWspHandler();
-						ws.listWsp(true);
-					}
-				});
-
 		listeners.put("Tools.Choose OBO Source", new ActionListener() {
 
 			@Override
@@ -1391,27 +1371,10 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 			}
 		});
 
-		listeners.put("Tools.My Account", new java.awt.event.ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				RWspHandler ws = new RWspHandler();
-				ws.listWsp(false);
-			}
-		});
-
 		listeners.put("File.New.Workspace", new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				newWorkspace_actionPerformed(e);
 			}
-		});
-
-		// GROUP 3: only invoke from right-click
-		// root menu
-		jUploadWspItem.addActionListener(new java.awt.event.ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				RWspHandler ws = new RWspHandler();
-				ws.uploadWsp();
-			}
-
 		});
 
 		jEditItem.addActionListener(new ActionListener() {
@@ -1436,7 +1399,6 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 		// Let the main frame listen to window-closing event
 		GeawConfigObject.getGuiWindow().addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
-				RWspHelper.listLock();
 
 				int n = JOptionPane
 						.showConfirmDialog(
@@ -1456,39 +1418,17 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 				}
 			}
 		});
-
-		projectTreeModel.addTreeModelListener(new TreeModelListener() {
-			public void treeNodesChanged(TreeModelEvent arg0) {
-				RWspHandler.treeModified();
-			}
-
-			public void treeNodesInserted(TreeModelEvent arg0) {
-				RWspHandler.treeModified();
-			}
-
-			public void treeNodesRemoved(TreeModelEvent arg0) {
-				RWspHandler.treeModified();
-			}
-
-			public void treeStructureChanged(TreeModelEvent arg0) {
-				RWspHandler.treeModified();
-			}
-		});
 	}
 
 	static private void saveWorkspace() {
-		if (RWspHandler.wspId > 0)
-			RWspHandler.saveLocalwsp(false);
-		else {
-			WorkspaceHandler ws = new WorkspaceHandler();
-			ws.save(WORKSPACE_DIR, false);
-			if (!StringUtils.isEmpty(ws.getWorkspacePath()))
-				GUIFramework.getFrame().setTitle(
-						((Skin) GeawConfigObject.getGuiWindow())
-								.getApplicationTitle()
-								+ " ["
-								+ ws.getWorkspacePath() + "]");
-		}
+		WorkspaceHandler ws = new WorkspaceHandler();
+		ws.save(WORKSPACE_DIR, false);
+		if (!StringUtils.isEmpty(ws.getWorkspacePath()))
+			GUIFramework.getFrame().setTitle(
+					((Skin) GeawConfigObject.getGuiWindow())
+							.getApplicationTitle()
+							+ " ["
+							+ ws.getWorkspacePath() + "]");
 	}
 
 	// notice this is almost the same as saveWorkspace()
@@ -1497,26 +1437,14 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 	// TODO: the relationship between RWspHandler and WorkspaceHandler is what
 	// should be better designed.
 	static private void saveWorkspaceAndExit() {
-		if (RWspHandler.wspId > 0)
-			RWspHandler.saveLocalwsp(true);
-		else {
-			WorkspaceHandler ws = new WorkspaceHandler();
-			ws.save(WORKSPACE_DIR, true);
-			if (!StringUtils.isEmpty(ws.getWorkspacePath()))
-				GUIFramework.getFrame().setTitle(
-						((Skin) GeawConfigObject.getGuiWindow())
-								.getApplicationTitle()
-								+ " ["
-								+ ws.getWorkspacePath() + "]");
-		}
+		WorkspaceHandler ws = new WorkspaceHandler();
+		ws.save(WORKSPACE_DIR, true);
+		if (!StringUtils.isEmpty(ws.getWorkspacePath()))
+			GUIFramework.getFrame().setTitle(((Skin) GeawConfigObject.getGuiWindow()).getApplicationTitle()	+ " ["
+							+ ws.getWorkspacePath() + "]");
 	}
 
 	private void openWorkspace() {
-		if (RWspHandler.wspId > 0) {
-			RWspHandler.saveLocalwsp(false);
-			clear();
-		}
-
 		WorkspaceHandler ws = new WorkspaceHandler();
 		ws.open(WORKSPACE_DIR);
 		if (!StringUtils.isEmpty(ws.getWorkspacePath()))
@@ -1528,13 +1456,10 @@ public class ProjectPanel implements VisualPlugin, MenuListener {
 	}
 
 	private void newWorkspace_actionPerformed(ActionEvent e) {
-		if (RWspHandler.wspId > 0)
-			RWspHandler.saveLocalwsp(false);
-		else {
-			WorkspaceHandler ws = new WorkspaceHandler();
-			if (!ws.confirmLoading(WORKSPACE_DIR, null))
-				return;
-		}
+		WorkspaceHandler ws = new WorkspaceHandler();
+		if (!ws.confirmLoading(WORKSPACE_DIR, null))
+			return;
+
 		clear();
 		GUIFramework.getFrame().setTitle(
 				((Skin) GeawConfigObject.getGuiWindow()).getApplicationTitle());

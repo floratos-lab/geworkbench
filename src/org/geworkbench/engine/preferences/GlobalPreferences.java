@@ -16,9 +16,7 @@ public class GlobalPreferences {
     public static final String PREF_VISUALIZATION = "Visualization";
     public static final String PREF_GENEPIX_COMPUTATION = "Genepix Value Computation";
     public static final String PREF_TEXT_EDITOR = "Text Editor";
-    public static final String RCM_URL = "Remote Components URL";
     public static final String PREF_MARKER_LOAD = "Marker Load Options";
-    public static final String RWSP_URL = "Remote Workspaces URL";
     public static final String MAX_NETWORK_OBJECT_NUMBER = "Soft Limit on Cytoscape Network Objects (nodes+edges)";
     public static final String R_LOCATION = "R Location (Rscript.exe and its folder)";
     public static final String R_LIBPATH = "R package directory (leave it blank for default path)";
@@ -45,8 +43,6 @@ public class GlobalPreferences {
     
     public static final String DEFAULT_R_LOCATION = "";
     public static final String DEFAULT_R_LIBPATH = "";
-
-    public static final String DEFAULT_RWSP_URL = "http://genspace.cs.columbia.edu:8080/axis2/services";
 
     private static GlobalPreferences instance;
 
@@ -79,20 +75,12 @@ public class GlobalPreferences {
         ChoiceField field3 = new ChoiceField(GlobalPreferences.PREF_GENEPIX_COMPUTATION, GlobalPreferences.GENEPIX_VALUES);
         field3.setSelection(0);
 
-        // RCM URL
-        TextField field4 = new TextField(GlobalPreferences.RCM_URL);
-        field4.setValue(GlobalPreferences.DEFAULT_RCM_URL);
-        
         // Color Context
         
         // Marker order/value options on load
         ChoiceField field5 = new ChoiceField(GlobalPreferences.PREF_MARKER_LOAD, GlobalPreferences.MARKER_LOAD_VALUES);
         field5.setSelection(0);
 
-        // RWSP URL
-        TextField field6 = new TextField(GlobalPreferences.RWSP_URL);
-        field6.setValue(GlobalPreferences.DEFAULT_RWSP_URL);
-        
         // reasonable number of interactions for create cytoscape network 
         IntegerField field7 = new IntegerField(MAX_NETWORK_OBJECT_NUMBER);
         field7.setValue(MAX_INTERACTION_NUM);
@@ -108,9 +96,7 @@ public class GlobalPreferences {
         prefs.addField(field1);
         prefs.addField(field2);
         prefs.addField(field3);
-        prefs.addField(field4);
         prefs.addField(field5);
-        prefs.addField(field6);
         prefs.addField(field7);
         prefs.addField(field8);
         prefs.addField(field9);
@@ -133,10 +119,6 @@ public class GlobalPreferences {
         return ((ChoiceField)prefs.getField(PREF_GENEPIX_COMPUTATION)).getSelection();
     }
 
-    public String getRCM_URL() {
-        return prefs.getField(RCM_URL).toString();
-    }
-    
     public Class<? extends ColorContext> getColorContextClass() {
         int pref = ((ChoiceField) prefs.getField(PREF_VISUALIZATION)).getSelection();
         return VISUALIZATON_COLOR_CONTEXTS[pref];
@@ -146,10 +128,6 @@ public class GlobalPreferences {
     	return ((ChoiceField)prefs.getField(PREF_MARKER_LOAD)).getSelection();
     }
 
-    public String getRWSP_URL() {
-        return prefs.getField(RWSP_URL).toString();
-    }
-    
     public int getMAX_INTERACTION_NUMBER() {
         return ((IntegerField)prefs.getField(MAX_NETWORK_OBJECT_NUMBER)).getValue();
     }

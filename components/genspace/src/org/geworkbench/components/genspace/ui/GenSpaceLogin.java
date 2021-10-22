@@ -11,7 +11,6 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.lang.reflect.*;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -21,7 +20,6 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
-import org.apache.commons.lang.StringUtils;
 import org.geworkbench.components.genspace.GenSpace;
 import org.geworkbench.components.genspace.GenSpaceServerFactory;
 import org.geworkbench.components.genspace.MahoutRecommendationPanel;
@@ -51,7 +49,6 @@ public class GenSpaceLogin extends JPanel implements VisualPlugin,
 	private JTextField tf;
 	private JPasswordField pf;
 	private JButton b1, b2, b3;
-	private static String username, password;
 	
 	private JLabel msgText, msgText1, msgText2, msgText3, msgText4, msgText5,
 			msgText6;
@@ -79,51 +76,6 @@ public class GenSpaceLogin extends JPanel implements VisualPlugin,
 		tf.setText("jon");
 		pf.setText("test123");
 		ActionEvent e = new ActionEvent(b1, 1, "foo");
-		actionPerformed(e);
-	}
-
-	/**
-	 * This method gets the username and password from geWorkbench login module
-	 * 
-	 * @author Abhaar Gupta
-	 */
-	private static void getUserInfo() throws NoSuchFieldException,
-			SecurityException, ClassNotFoundException,
-			IllegalArgumentException, IllegalAccessException {
-		final Field field1 = Class.forName(
-				"org.geworkbench.builtin.projects.RWspHandler")
-				.getDeclaredField("savedUserInfo");
-		field1.setAccessible(true);
-		String userInfo = (String) field1.get(Class
-				.forName("org.geworkbench.builtin.projects.RWspHandler"));
-		final Field field2 = Class.forName(
-				"org.geworkbench.builtin.projects.RWspHandler")
-				.getDeclaredField("USER_INFO_DELIMIETER");
-		field2.setAccessible(true);
-		String delimiter = (String) field2.get(Class
-				.forName("org.geworkbench.builtin.projects.RWspHandler"));
-		if (!StringUtils.isEmpty(userInfo)) {
-			String s[] = userInfo.split(delimiter, 2);
-			if (s.length >= 2) {
-				username = s[0];
-				password = s[1];
-			}
-		}
-	}
-
-	/**
-	 * This method passes the username/password acquired from above to genSpace
-	 * login module.
-	 * 
-	 * @author Abhaar Gupta
-	 */
-	public void autoGSLogin() throws NoSuchFieldException, SecurityException,
-			ClassNotFoundException, IllegalArgumentException,
-			IllegalAccessException {
-		getUserInfo();
-		tf.setText(username);
-		pf.setText(password);
-		ActionEvent e = new ActionEvent(b1, 1, "autoLogging");
 		actionPerformed(e);
 	}
 

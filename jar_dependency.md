@@ -1,0 +1,35 @@
+AffxFusion.jar: org.geworkbench.bison.datastructure.bioobjects.microarray.CSProbeIntensityArray
+ant.jar: GSEAAnalysis
+cglib-nodep-2.1.jar
+collections-generic-4.0.jar
+commons-beanutils.jar
+commons-codec-1.3.jar
+commons-collections.jar
+commons-digester.jar
+commons-discovery.jar
+commons-httpclient-3.1.jar
+commons-lang-2.4.jar
+commons-logging.jar
+commons-math-2.2.jar
+docking.jar
+forms-1.0.5.jar
+httpcore-4.0.jar
+j3dcore.jar
+j3dutils.jar
+jai_codec.jar
+jai_core.jar
+jaxen.jar
+jaxrpc.jar
+jcommon-1.0.23.jar
+jdom.jar
+jfreechart-1.0.19.jar
+jhall.jar
+junit.jar
+log4j-1.2.8.jar
+mail.jar
+ostermillerutils_1_04_03_for_kaffe.jar
+serializer.jar
+vecmath.jar
+wsdl4j-1.6.2.jar
+xalan.jar
+xml-apis.jar

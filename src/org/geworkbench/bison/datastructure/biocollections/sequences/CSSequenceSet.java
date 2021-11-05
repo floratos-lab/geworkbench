@@ -183,7 +183,6 @@ public class CSSequenceSet<T extends DSSequence> extends CSDataSet<T> implements
 			SequenceMarker marker = new SequenceMarker();
 			DSSequence sequence = this.get(markerId);
 			marker.parseLabel(sequence.getLabel());
-			sequence.setDescription(sequence.getLabel());
 			// Use the short label as the label for the sequence as well (bug
 			// #251)
 			if ((marker.getLabel() != null) && (marker.getLabel().length() > 0)) {

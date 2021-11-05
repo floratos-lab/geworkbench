@@ -6,14 +6,27 @@ import java.util.ArrayList;
 
 import org.geworkbench.bison.datastructure.bioobjects.DSBioObject;
 import org.geworkbench.bison.datastructure.complex.panels.DSItemList;
-import org.geworkbench.bison.datastructure.properties.DSDescribable;
 import org.geworkbench.bison.datastructure.properties.DSExtendable;
 import org.geworkbench.bison.datastructure.properties.DSNamed;
 
 /**
  * Implementing classes store sets of biological data (such as a set of microarrays or sequences).
  */
-public interface DSDataSet <T extends DSBioObject> extends DSDescribable, DSNamed, Serializable, DSExtendable, DSItemList<T> {
+public interface DSDataSet <T extends DSBioObject> extends DSNamed, Serializable, DSExtendable, DSItemList<T> {
+
+    /**
+     * Set new description.
+     *
+     * @param description The new description.
+     */
+    void setDescription(String description);
+
+    /**
+     * Get the description..
+     *
+     * @return A description.
+     */
+    String getDescription();
 
     /**
      * The name of data set.

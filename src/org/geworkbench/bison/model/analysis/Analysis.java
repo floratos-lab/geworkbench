@@ -3,8 +3,6 @@ package org.geworkbench.bison.model.analysis;
 import java.io.Serializable;
 import java.util.Map;
 
-import org.geworkbench.bison.datastructure.properties.DSDescribable;
-
 /**
  * <p>Copyright: Copyright (c) 2003</p>
  * <p>Company: First Genetic Trust Inc.</p>
@@ -34,7 +32,7 @@ import org.geworkbench.bison.datastructure.properties.DSDescribable;
  * @author yc2480
  * @version $Id$
  */
-public interface Analysis extends DSDescribable {
+public interface Analysis {
     /**
      * returns a GUI for entering analysis-specific parameter values.
      *

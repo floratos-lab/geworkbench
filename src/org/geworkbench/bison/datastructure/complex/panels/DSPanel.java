@@ -2,14 +2,13 @@ package org.geworkbench.bison.datastructure.complex.panels;
 
 import java.io.Serializable;
 
-import org.geworkbench.bison.datastructure.properties.DSIdentifiable;
 import org.geworkbench.bison.datastructure.properties.DSNamed;
 import org.geworkbench.bison.datastructure.properties.DSSequential;
 
 /**
  * Implementing classes are activatable/deactivatable item lists.
  */
-public interface DSPanel <T extends DSNamed> extends DSItemList<T>, DSNamed, DSIdentifiable, Serializable, DSSequential {
+public interface DSPanel <T extends DSNamed> extends DSItemList<T>, DSNamed, Serializable, DSSequential {
     /**
      * Gets the sub-label for this DSPanel.
      *

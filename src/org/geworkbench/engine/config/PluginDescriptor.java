@@ -34,7 +34,7 @@ import org.geworkbench.engine.management.ComponentResource;
  * a result of processing the <code>&lt;plugin&gt;</code> rules in the
  * application's configuration file.
  */
-public class PluginDescriptor extends IdentifiableImpl implements Comparable<PluginDescriptor> {
+public class PluginDescriptor implements Comparable<PluginDescriptor> {
     // ---------------------------------------------------------------------------
     // --------------- Instance and static variables
     // ---------------------------------------------------------------------------
@@ -109,7 +109,7 @@ public class PluginDescriptor extends IdentifiableImpl implements Comparable<Plu
     // ---------------------------------------------------------------------------
     /**
      * Instantiates a descriptor for a plugin component described by a class file
-     * and assignes to it the
+     * and assigns to it the
      * designated id and name.
      *
      * @param className A string containing the fully qualified class name.
@@ -117,7 +117,14 @@ public class PluginDescriptor extends IdentifiableImpl implements Comparable<Plu
      * @param someName        Assigned name.
      */
     public PluginDescriptor(String className, String someID, String someName, String resourceName, int preferredOrder) {
-        super(someID, someName);
+        if (usedIds.contains(someID)) {// Check that the id we try to assign is unique
+            throw new org.geworkbench.util.BaseRuntimeException("IdentifiableImpl::IdentifiableImpl("+someID+", "+someName+") - " + "Attempt to reuse already existing id.");
+        }
+        this.id = someID;
+        usedIds.add(this.id);
+
+        name = someName;  // this is OK: Strings are immutable. No need for new()
+
         this.preferredOrder = preferredOrder;
 
         resource = null;
@@ -392,5 +399,31 @@ public class PluginDescriptor extends IdentifiableImpl implements Comparable<Plu
     public ComponentResource getResource() {
 		return resource;
 	}
-    
+
+    public static boolean idExists(String someId) {
+        return usedIds.contains(someId);
+    }
+
+    public String getID() {
+        return id; // this is OK: Strings are immutable. No need for new()
+    }
+
+    public String getLabel() {
+        return name; // this is OK: Strings are immutable. No need for new()
+    }
+
+    /**
+     * Stores a unique id.
+     */
+    final private String id;
+    /**
+     * Stores a (not necessarily unique) name.
+    */
+    final private String name;
+
+    /**
+     * Keeps track of ids currently in use.
+     */
+    final private static Vector<String> usedIds = new Vector<String>(100);
+
 }
